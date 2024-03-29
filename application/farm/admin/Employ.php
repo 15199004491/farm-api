@@ -45,14 +45,6 @@ class Employ extends Common
     {
         $data = $this->request->param();
         $keyword = $data['keyword'];
-        
-        // 置顶信息查询条件
-        // $map_top = [
-        //     ['title|explain', 'like', "%$keyword%"],
-        //     ['area', '=', $data['area']],
-        // ];
-
-        // $top_list = EmployModel::where($map_top)->order('update_time desc')->select();
 
         // 默认信息查询条件
         $map_data = [
@@ -61,7 +53,6 @@ class Employ extends Common
         ];
         
         $data_list = EmployModel::where($map_data)->order('update_time desc')->limit($data['start'], $data['end'])->select();
-        // $result = array_merge(json_decode($top_list),json_decode($data_list));
 
         return $this->json_result($data_list, 200, '操作成功');
     } 
@@ -70,7 +61,7 @@ class Employ extends Common
     {
         $data = $this->request->param();
         
-        $result = EmployModel::where('Id', $data['Id'])->update(['is_top' => 1]);
+        $result = EmployModel::where('Id', $data['Id'])->update(['top_start' => $data['top_start'],'top_end' => $data['top_end']]);
         
         return $this->json_return($result);
     }
