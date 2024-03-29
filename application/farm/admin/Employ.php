@@ -18,12 +18,14 @@ class Employ extends Common
     public function addEmploy()
     {
         $data = $this->request->param();
-        if($data['new'] == 1) {
+        $data['update_time'] = time();
+        if(isset($data['Id'])) {
+            $param = EmployModel::where('Id', $data['Id'])->update($data);
+        } else {
             $token = $this->getToken();
-            $data['publisher'] = explode(',',$token)[0];
+            $data['publisher'] = $token;
+            $param = EmployModel::insertGetId($data);
         }
-        // 加入活动数据
-        $param = $data['new']? EmployModel::insertGetId($data) : EmployModel::where('id', $data['id'])->update($data);
        
         return $this->json_return($param);
     }
@@ -33,10 +35,7 @@ class Employ extends Common
     public function employDetail()
     {
         $data = $this->request->param();
-        $result = '';
-        if($data['id']) {
-            $result = EmployModel::where('Id', $data['id'])->find();
-        }
+        $result = EmployModel::where('Id', $data['Id'])->find();
         return $this->json_return($result);
     }
      /**
@@ -46,12 +45,34 @@ class Employ extends Common
     {
         $data = $this->request->param();
         $keyword = $data['keyword'];
-        $map = [
-            ['name|description', 'like', "%$keyword%"]
+        
+        // 置顶信息查询条件
+        // $map_top = [
+        //     ['title|explain', 'like', "%$keyword%"],
+        //     ['area', '=', $data['area']],
+        // ];
+
+        // $top_list = EmployModel::where($map_top)->order('update_time desc')->select();
+
+        // 默认信息查询条件
+        $map_data = [
+            ['title|explain', 'like', "%$keyword%"],
+            ['area', '=', $data['area']]
         ];
-        $data_list = EmployModel::where($map)->order('id desc')->limit($data['start'], $data['end'])->select();
-        // 分页数据
-        return $this->json_return($data_list);
+        
+        $data_list = EmployModel::where($map_data)->order('update_time desc')->limit($data['start'], $data['end'])->select();
+        // $result = array_merge(json_decode($top_list),json_decode($data_list));
+
+        return $this->json_result($data_list, 200, '操作成功');
+    } 
+    // 置顶信息
+    public function topEmploy()
+    {
+        $data = $this->request->param();
+        
+        $result = EmployModel::where('Id', $data['Id'])->update(['is_top' => 1]);
+        
+        return $this->json_return($result);
     }
     // 参加活动
     public function joinEmploy()

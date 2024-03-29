@@ -143,7 +143,7 @@ trait Jump
     // 封装一个返回数据的方法
     protected function json_return($param)
     {
-        return $param? $this->json_result($param, 200, '操作成功') : $this->json_result('', 409, '操作失败');
+        return $param? $this->json_result($param, 200, '操作成功') : $this->json_result([], 409, '操作失败');
     }
     /**
      * 获取文件的扩展名
