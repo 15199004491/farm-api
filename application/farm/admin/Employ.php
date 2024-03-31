@@ -50,7 +50,7 @@ class Employ extends Common
             ['area', '=', $data['area']]
         ];
         
-        $data_list = EmployModel::where($map_data)->order('update_time desc')->limit($data['start'], $data['end'])->select();
+        $data_list = EmployModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
 
         return $this->json_result($data_list, 200, '操作成功');
     } 

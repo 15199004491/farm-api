@@ -2,43 +2,43 @@
 
 namespace app\farm\admin;
 
-use app\farm\model\Land as LandModel;
+use app\farm\model\Machine as MachineModel;
 use app\common\controller\Common;
 
 /**
  * 
  * @package
  */
-class Land extends Common
+class Machine extends Common
 {
     /**
-     * 土地发布
+     * 农机发布
      */
-    public function addLand()
+    public function addMachine()
     {
         $data = $this->request->param();
         $data['update_time'] = time();
         if(isset($data['Id'])) {
-            $param = LandModel::where('Id', $data['Id'])->update($data);
+            $param = MachineModel::where('Id', $data['Id'])->update($data);
         } else {
-            $param = LandModel::insertGetId($data);
+            $param = MachineModel::insertGetId($data);
         }
        
         return $this->json_return($param);
     }
     /**
-     * 查看土地信息
+     * 查看农机信息
      */
-    public function landDetail()
+    public function machineDetail()
     {
         $data = $this->request->param();
-        $result = LandModel::where('Id', $data['Id'])->find();
+        $result = MachineModel::where('Id', $data['Id'])->find();
         return $this->json_return($result);
     }
      /**
-     * 土地分页列表
+     * 农机分页列表
      */
-    public function landList()
+    public function machineList()
     {
         $data = $this->request->param();
 
@@ -47,16 +47,16 @@ class Land extends Common
             ['area', '=', $data['area']]
         ];
         
-        $data_list = LandModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
+        $data_list = MachineModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
 
         return $this->json_result($data_list, 200, '操作成功');
     } 
     // 置顶信息
-    public function topLand()
+    public function topMachine()
     {
         $data = $this->request->param();
         
-        $result = LandModel::where('Id', $data['Id'])->update(['top_start' => $data['top_start'],'top_end' => $data['top_end']]);
+        $result = MachineModel::where('Id', $data['Id'])->update(['top_start' => $data['top_start'],'top_end' => $data['top_end']]);
         
         return $this->json_return($result);
     }
