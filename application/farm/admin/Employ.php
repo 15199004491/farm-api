@@ -22,8 +22,6 @@ class Employ extends Common
         if(isset($data['Id'])) {
             $param = EmployModel::where('Id', $data['Id'])->update($data);
         } else {
-            $token = $this->getToken();
-            $data['publisher'] = $token;
             $param = EmployModel::insertGetId($data);
         }
        
