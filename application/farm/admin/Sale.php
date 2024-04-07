@@ -41,9 +41,11 @@ class Sale extends Common
     public function saleList()
     {
         $data = $this->request->param();
+        $keyword = $data['keyword'];
 
         // 默认信息查询条件
         $map_data = [
+            ['title|explain', 'like', "%$keyword%"],
             ['area', '=', $data['area']]
         ];
         

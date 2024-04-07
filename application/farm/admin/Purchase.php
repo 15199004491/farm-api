@@ -41,9 +41,11 @@ class Purchase extends Common
     public function purchaseList()
     {
         $data = $this->request->param();
+        $keyword = $data['keyword'];
 
         // 默认信息查询条件
         $map_data = [
+            ['info|explain', 'like', "%$keyword%"],
             ['area', '=', $data['area']]
         ];
         
