@@ -70,5 +70,31 @@ class Wxuser extends Controller {
             WxuserModel::insertGetId($data);
         }
     }
+    // 上传图片
+    public function updateImage()
+    {
+        if(!empty($_FILES['image'])){
+            //获取扩展名
+            $exename = $this->getExeName($_FILES['image']['name']);
+
+            $imageSavePath ='person/'.uniqid().'.'.$exename;
+            
+            if(move_uploaded_file($_FILES['image']['tmp_name'], $imageSavePath)){
+                return $this->json_result($imageSavePath, 200, '上传成功');
+            }
+        }
+    }
+    // 删除图片
+    public function removeImage()
+    {
+        $data = $this->request->param();
+        $file = $data['path'];
+        if (file_exists($file)) {
+            unlink($file);
+            return $this->json_result([], 200, '图片删除成功');
+        } else {
+            return $this->json_result([], 200, '图片删除成功');
+        }
+    }
 }
 ?>
