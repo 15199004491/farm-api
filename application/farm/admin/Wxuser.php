@@ -77,7 +77,7 @@ class Wxuser extends Controller {
             //获取扩展名
             $exename = $this->getExeName($_FILES['image']['name']);
 
-            $imageSavePath ='person/'.uniqid().'.'.$exename;
+            $imageSavePath ='factory/'.uniqid().'.'.$exename;
             
             if(move_uploaded_file($_FILES['image']['tmp_name'], $imageSavePath)){
                 return $this->json_result($imageSavePath, 200, '上传成功');

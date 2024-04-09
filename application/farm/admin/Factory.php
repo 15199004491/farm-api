@@ -12,6 +12,23 @@ use app\common\controller\Common;
 class Factory extends Common
 {
     /**
+     * 个人名下的加工厂列表
+     */
+    public function factorySelf()
+    {
+        $data = $this->request->param();
+        $publisher = $data['publisher'];
+
+        // 默认信息查询条件
+        $map_data = [
+            ['publisher', '=', $publisher],
+        ];
+        
+        $data_list = FactoryModel::where($map_data)->select();
+
+        return $this->json_result($data_list, 200, '操作成功');
+    } 
+    /**
      * 添加加工厂信息
      */
     public function addFactory()
@@ -26,12 +43,12 @@ class Factory extends Common
        
         return $this->json_return($param);
     }
-    // 切换加工厂至已打款状态
+    // 切换加工厂的状态
     public function remit()
     {
         $data = $this->request->param();
         $param = FactoryModel::where('Id', $data['id'])->update(['identification' => $data['state']]);
-        return $this->json_return($param);
+        return $this->json_result($param, 200, '操作成功');
     }
     /**
      * 查看加工厂信息
@@ -39,7 +56,7 @@ class Factory extends Common
     public function factoryDetail()
     {
         $data = $this->request->param();
-        $result = FactoryModel::where('publisher', $data['publisher'])->find();
+        $result = FactoryModel::where('Id', $data['Id'])->find();
         return $this->json_return($result);
     }
      /**
@@ -52,7 +69,8 @@ class Factory extends Common
 
         // 默认信息查询条件
         $map_data = [
-            ['info|explain', 'like', "%$keyword%"],
+            ['name|info|explain', 'like', "%$keyword%"],
+            ['identification', '=', 4],
         ];
         
         $data_list = FactoryModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
@@ -66,6 +84,15 @@ class Factory extends Common
         
         $result = FactoryModel::where('Id', $data['Id'])->update(['top_start' => $data['top_start'],'top_end' => $data['top_end']]);
         
+        return $this->json_return($result);
+    }
+    /**
+     * 删除加工厂信息
+     */
+    public function factoryDelete()
+    {
+        $data = $this->request->param();
+        $result = FactoryModel::where('id', $data['id'])->delete();
         return $this->json_return($result);
     }
 }
