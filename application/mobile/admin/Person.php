@@ -34,7 +34,7 @@ class Person extends Common
         return $this->json_result($result, 200, '操作成功');
     }
      /**
-     * 会员分页列表
+     * 会员列表
      */
     public function personList()
     {

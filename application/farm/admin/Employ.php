@@ -12,6 +12,32 @@ use app\common\controller\Common;
  */
 class Employ extends Common
 {
+    // 删除信息
+    public function deleteEmploy()
+    {
+        $data = $this->request->param();
+        
+        $result = EmployModel::where('Id', $data['Id'])->delete();
+        
+        return $this->json_return($result);
+    }
+    /**
+     * 当前人发布的招工列表
+     */
+    public function employSelf()
+    {
+        $data = $this->request->param();
+        $publisher = $data['publisher'];
+
+        // 默认信息查询条件
+        $map_data = [
+            ['publisher', '=', $publisher],
+        ];
+        
+        $data_list = EmployModel::where($map_data)->select();
+
+        return $this->json_result($data_list, 200, '操作成功');
+    } 
     /**
      * 招工发布
      */
@@ -36,8 +62,8 @@ class Employ extends Common
         $result = EmployModel::where('Id', $data['Id'])->find();
         return $this->json_return($result);
     }
-     /**
-     * 招工分页列表
+      /**
+     * 招工列表
      */
     public function employList()
     {

@@ -60,7 +60,7 @@ class Factory extends Common
         return $this->json_return($result);
     }
      /**
-     * 加工厂分页列表
+     * 加工厂列表
      */
     public function factoryList()
     {
@@ -89,10 +89,10 @@ class Factory extends Common
     /**
      * 删除加工厂信息
      */
-    public function factoryDelete()
+    public function deleteFactory()
     {
         $data = $this->request->param();
-        $result = FactoryModel::where('id', $data['id'])->delete();
+        $result = FactoryModel::where('Id', $data['Id'])->delete();
         return $this->json_return($result);
     }
 }

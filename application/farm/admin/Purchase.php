@@ -11,6 +11,32 @@ use app\common\controller\Common;
  */
 class Purchase extends Common
 {
+    // 删除信息
+    public function deletePurchase()
+    {
+        $data = $this->request->param();
+        
+        $result = PurchaseModel::where('Id', $data['Id'])->delete();
+        
+        return $this->json_return($result);
+    }
+    /**
+     * 当前人发布的个人收购列表
+     */
+    public function purchaseSelf()
+    {
+        $data = $this->request->param();
+        $publisher = $data['publisher'];
+
+        // 默认信息查询条件
+        $map_data = [
+            ['publisher', '=', $publisher],
+        ];
+        
+        $data_list = PurchaseModel::where($map_data)->select();
+
+        return $this->json_result($data_list, 200, '操作成功');
+    }
     /**
      * 收购发布
      */
@@ -36,7 +62,7 @@ class Purchase extends Common
         return $this->json_return($result);
     }
      /**
-     * 收购分页列表
+     * 收购列表
      */
     public function purchaseList()
     {

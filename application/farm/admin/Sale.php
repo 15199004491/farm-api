@@ -11,6 +11,32 @@ use app\common\controller\Common;
  */
 class Sale extends Common
 {
+     // 删除信息
+     public function deleteSale()
+     {
+         $data = $this->request->param();
+         
+         $result = SaleModel::where('Id', $data['Id'])->delete();
+         
+         return $this->json_return($result);
+     }
+    /**
+     * 当前人发布的销售列表
+     */
+    public function saleSelf()
+    {
+        $data = $this->request->param();
+        $publisher = $data['publisher'];
+
+        // 默认信息查询条件
+        $map_data = [
+            ['publisher', '=', $publisher],
+        ];
+        
+        $data_list = SaleModel::where($map_data)->select();
+
+        return $this->json_result($data_list, 200, '操作成功');
+    } 
     /**
      * 出售发布
      */
@@ -35,8 +61,8 @@ class Sale extends Common
         $result = SaleModel::where('Id', $data['Id'])->find();
         return $this->json_return($result);
     }
-     /**
-     * 出售分页列表
+    /**
+     * 出售列表
      */
     public function saleList()
     {

@@ -51,7 +51,7 @@ class Activity extends Common
         }
     }
      /**
-     * 活动分页列表
+     * 活动列表
      */
     public function activityList()
     {
