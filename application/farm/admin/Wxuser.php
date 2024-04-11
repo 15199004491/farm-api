@@ -2,6 +2,7 @@
 namespace app\farm\admin;
 use think\Controller;
 use app\farm\model\Wxuser as WxuserModel;
+use app\farm\model\Suggest as SuggestModel;
 
 class Wxuser extends Controller {
     /*获取access_token,不能用于获取用户信息的token*/
@@ -96,5 +97,20 @@ class Wxuser extends Controller {
             return $this->json_result([], 200, '图片删除成功');
         }
     }
+    // 添加投诉/建议
+    public function addSuggest() {
+        $data = $this->request->param();
+        $data['update_time'] = time();
+        $param = SuggestModel::insertGetId($data);
+       
+        return $this->json_return($param);
+    }
+    // 获取当前用户的信息
+    public function getUserInfo() {
+        $data = $this->request->param();
+        $result = WxuserModel::where('mobile', $data['token'])->find();
+        return $this->json_return($result);
+    }
+    
 }
 ?>
