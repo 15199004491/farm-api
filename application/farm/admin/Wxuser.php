@@ -3,6 +3,7 @@ namespace app\farm\admin;
 use think\Controller;
 use app\farm\model\Wxuser as WxuserModel;
 use app\farm\model\Suggest as SuggestModel;
+use app\farm\model\Person as PersonModel;
 
 class Wxuser extends Controller {
     /*获取access_token,不能用于获取用户信息的token*/
@@ -59,17 +60,23 @@ class Wxuser extends Controller {
             return $this->json_result([], 409, '请求失败');
         }
     }
-    // 用户登录
+    
     public function login() {
-        $data = $this->request->param();
-        $result = WxuserModel::where('mobile', $data['mobile'])->find();
-        // $result? WxuserModel::where('mobile', $data['mobile'])->update($data) : WxuserModel::insertGetId($data);
-        if($result) {
-            $login_time = time();
-            WxuserModel::where('mobile', $data['mobile'])->update($data);
+        $data = $this->request->post();
+        $model = new WxuserModel;
+        $session = $model->login($data);
+        $data['open_id'] = $session['openid'];
+		$data['nick_name'] = preg_replace('/[\xf0-\xf7].{3}/', '', $data['nick_name']);
+		$data['gender'] = $data['gender'] + 1;
+        $data['update_time']=time();
+        $info = PersonModel::where('login_mobile',$data['login_mobile'])->find();
+        if($info) {
+            $result = PersonModel::where('login_mobile',$data['login_mobile'])->update($data);
         } else {
-            WxuserModel::insertGetId($data);
+            $data['create_time']=time();
+            $result = PersonModel::insertGetId($data);
         }
+        return $this->json_return($result);
     }
     // 上传图片
     public function updateImage()
@@ -108,7 +115,7 @@ class Wxuser extends Controller {
     // 获取当前用户的信息
     public function getUserInfo() {
         $data = $this->request->param();
-        $result = WxuserModel::where('mobile', $data['token'])->find();
+        $result = WxuserModel::where('login_mobile', $data['token'])->find();
         return $this->json_return($result);
     }
     

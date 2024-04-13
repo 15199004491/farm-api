@@ -19,42 +19,16 @@ class Wxuser extends Model {
 	* @param $appSecret
 	*/
 	public function __construct() {
-		// $appKey = Db::name("appkey")->find(); // 查找管理后台入库的小程序信息
-		// $this->appId = $appKey["appId"];
-		// $this->appSecret = $appKey["appSecret"];
 		$this->appId = 'wx5375bc6d5a7a6227';
 		$this->appSecret = '7942cffdecd4862b5746a5bafd17a93b';
 	}
-
-	/**
-	* 获取用户信息
-	* @param $token
-	* @return null|static
-	* @throws \think\exception\DbException
-	*/
-	public static function getUser($token) {
-		$open_id = Cache::get($token)['openid'];
-		$userInfo = DB::name("mobile_wxuser")->where("open_id",$open_id)->find();
-		if ($userInfo) {
-			$userInfo["create_time"] = date('Y-m-d',$userInfo["create_time"]);
-			$userInfo["update_time"] = date('Y-m-d',$userInfo["update_time"]);
-		}
-		return $userInfo;
-	}
-
 	/**
 	* 用户登陆
 	*/
 	public function login($post) {
 		// 微信登陆 获取session_key
 		$session = $this->wxlogin($post["code"]);
-		// 自动注册用户
-		$user_id = $this->register($session["openid"],$post["nickName"],$post["avatarUrl"],$post["gender"]);
-		// 生成token
-		$this->token = $this->token($session["openid"]);
-		// 记录缓存 7天
-		Cache::set($this->token, $session, 86400 * 7);
-		return $user_id;
+		return $session;
 	}
 
 	/**
@@ -139,24 +113,26 @@ class Wxuser extends Model {
      * @return mixed
      * @throws \think\exception\DbException
      */
-    private function register($open_id, $nickName,$avatarUrl,$gender) {
+    private function register($open_id, $nickName,$avatarUrl,$gender,$area,$mobile) {
 		$userInfo['open_id'] = $open_id;
-		$userInfo['nickName'] = preg_replace('/[\xf0-\xf7].{3}/', '', $nickName);
-        $userInfo['avatarUrl'] = $avatarUrl;
+		$userInfo['nick_name'] = preg_replace('/[\xf0-\xf7].{3}/', '', $nickName);
+        $userInfo['avatar_url'] = $avatarUrl;
 		$userInfo['gender'] = $gender+1;
-		$data=Db::name('mobile_wxuser')->where('open_id',$open_id)->find();
+		$userInfo['area'] = $area;
+		$userInfo['login_mobile'] = $mobile;
+		$data=Db::name('farm_user')->where('open_id',$open_id)->find();
         if(!$data){
         	$userInfo['create_time']=time();     
 			$userInfo['update_time']=time();   
-            $user_id = Db::name('mobile_wxuser')->insertGetId($userInfo);
+            $user_id = Db::name('farm_user')->insertGetId($userInfo);
         	if (!$user_id) {
 	        	return json_encode(['code'=>0,'msg' => '用户注册失败']);
 	        }
 	        return $user_id;
         }else{
         	$userInfo['update_time']=time();
-        	Db::name('mobile_wxuser')->where('id',$data['id'])->update($userInfo);
-        	return $data['id'];
+        	Db::name('farm_user')->where('Id',$data['Id'])->update($userInfo);
+        	return $data['Id'];
         }
     }
 }

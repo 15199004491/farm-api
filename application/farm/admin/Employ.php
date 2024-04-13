@@ -12,6 +12,63 @@ use app\common\controller\Common;
  */
 class Employ extends Common
 {
+    public function cancleAttend()
+    {
+        // 1.先取消个人表里的该活动
+        $data = $this->request->param();
+        
+        $param = PersonModel::where('login_mobile', $data['token'])->find();
+        
+        $attend = json_decode($param['attend']);
+
+        foreach ($attend as $key => $value) {
+            if ($value == $data['Id']) {
+                unset($attend[$key]);
+            }
+        }
+        $attend = json_encode($attend);
+        
+        $user_id = PersonModel::where('login_mobile', $data['token'])->update(['attend' => $attend]);
+        
+         // 2.取消活动表的该人
+        $info = EmployModel::where('Id',  $data['Id'])->find();
+        $attend_list = json_decode($info['attend']);
+
+        foreach ($attend_list as $key => $value) {
+            if ($value == $user_id) {
+                unset($attend_list[$key]);
+            }
+        }
+        $attend_list = json_encode($attend_list);
+        $result = EmployModel::where('Id', $data['Id'])->update(['attend' => $attend_list]);
+        
+        return $this->json_return($result);
+    }
+    // 参加活动
+    public function attendEmploy()
+    {
+        // 1.先更新活动到个人信息
+        $data = $this->request->param();
+        
+        $param = PersonModel::where('login_mobile', $data['token'])->find();
+        
+        $attend = json_decode($param['attend']);
+
+        $attend? array_push($attend,$data['Id']):$attend=[$data['Id']];
+        $attend = json_encode($attend);
+         // 2.拿到当前人的id
+        $user_id = PersonModel::where('login_mobile',  $data['token'])->update(['attend' => $attend]);
+        // 3.把id更新到活动信息的表
+        $info = EmployModel::where('Id', $data['Id'])->find();
+        $list = json_decode($info['attend']);
+
+        $list? array_push($list,$user_id):$list=[$user_id];
+        $list = json_encode($list);
+
+        $employ = EmployModel::where('Id',  $data['Id'])->update(['attend' => $list]);
+        
+        return $this->json_return($employ);
+    }
     // 删除信息
     public function deleteEmploy()
     {
@@ -60,6 +117,17 @@ class Employ extends Common
     {
         $data = $this->request->param();
         $result = EmployModel::where('Id', $data['Id'])->find();
+        // 把参加活动的人员信息捞出来
+        $lists = json_decode($result['attend']);
+        if($lists) {
+            $map_data = [
+                ['Id', 'in', $lists],
+            ];
+            $data_list = PersonModel::where($map_data)->select();
+            $result['attend'] = $data_list;
+        } else {
+            $result['attend'] = [];
+        }
         return $this->json_return($result);
     }
       /**
