@@ -20,7 +20,7 @@ class Wxuser extends Model {
 	*/
 	public function __construct() {
 		$this->appId = 'wx5375bc6d5a7a6227';
-		$this->appSecret = '7942cffdecd4862b5746a5bafd17a93b';
+		$this->appSecret = 'f946359b33b372d190c2d9be6e2cb213';
 	}
 	/**
 	* 用户登陆

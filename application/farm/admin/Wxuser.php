@@ -10,7 +10,7 @@ class Wxuser extends Controller {
     public  function getAccessToken()
     {
         $appid = 'wx5375bc6d5a7a6227';
-        $secret = '7942cffdecd4862b5746a5bafd17a93b';
+        $secret = 'f946359b33b372d190c2d9be6e2cb213';
 
         $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".$appid."&secret=".$secret."";
 
@@ -43,6 +43,7 @@ class Wxuser extends Controller {
         $tmp = $this->getAccessToken();
         $tmptoken = json_decode($tmp);
         $token = $tmptoken->access_token;
+        
         $data['code'] = $this->request->post()['code'];
 
         $url = "https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=$token";
@@ -76,6 +77,7 @@ class Wxuser extends Controller {
             $data['create_time']=time();
             $result = PersonModel::insertGetId($data);
         }
+		
         return $this->json_return($result);
     }
     // 上传图片
@@ -115,8 +117,8 @@ class Wxuser extends Controller {
     // 获取当前用户的信息
     public function getUserInfo() {
         $data = $this->request->param();
-        $result = WxuserModel::where('login_mobile', $data['token'])->find();
-        return $this->json_return($result);
+        $result = PersonModel::where('login_mobile', $data['token'])->find();
+        return $this->json_result($result, 200, '操作成功');
     }
     
 }

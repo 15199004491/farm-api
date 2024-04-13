@@ -23,7 +23,7 @@ class Wxuser extends Model {
 		// $this->appId = $appKey["appId"];
 		// $this->appSecret = $appKey["appSecret"];
 		$this->appId = 'wx5375bc6d5a7a6227';
-		$this->appSecret = '7942cffdecd4862b5746a5bafd17a93b';
+		$this->appSecret = '1a2s3d4f5g1a2s3d4f5g1a2s3d4f5g1a';
 	}
 
 	/**

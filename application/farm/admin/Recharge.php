@@ -17,7 +17,7 @@ class Recharge extends Common{
     private $makesign = '1a2s3d4f5g1a2s3d4f5g1a2s3d4f5g1a';                                                    //Your API支付的签名(在商户平台API安全按钮中获取)
     private $parameters=NULL;
     private $notify='http://www.ctz.cn/wxpay.php';                             //配置回调地址(给pays中转文件上传到根目录下面)
-    private $app_secret='7942cffdecd4862b5746a5bafd17a93b';                                                    //Your appSecret 微信官方获取
+    private $app_secret='f946359b33b372d190c2d9be6e2cb213';                                                    //Your appSecret 微信官方获取
     public $error = 0;
     public $orderid = null;
     public $openid = '';
@@ -25,11 +25,13 @@ class Recharge extends Common{
     //进行微信支付
     public function wxPay(){
 
+        $data = $this->request->param();
+
         $reannumb = $this->randomkeys(6);  //生成随机数 以后可以当做 订单号
         $pays ='0.01';                        //获取需要支付的价格·
 		
         #插入语句书写的地方
-        $conf = $this->payconfig('Bm'.$reannumb,$pays * 100, '置顶费用支付');
+        $conf = $this->payconfig('Bm'.$reannumb,$pays * 100, '置顶费用支付',$data['open_id']);
         if (!$conf || $conf['return_code'] == 'FAIL') exit("<script>alert('对不起，微信支付接口调用错误!" . $conf['return_msg'] . "');history.go(-1);</script>");
 		$this->orderid = $conf['prepay_id'];
         //微信相关配置如果不正的话，进入支付页面会出现错误信息
@@ -48,7 +50,7 @@ class Recharge extends Common{
 
     //订单管理
     #微信JS支付参数获取#
-    protected function payconfig($no, $fee, $body)
+    protected function payconfig($no, $fee, $body, $open_id)
     {
         $url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
         $data['appid'] = $this->app_id;
@@ -60,9 +62,8 @@ class Recharge extends Common{
         $data['spbill_create_ip'] = $_SERVER["REMOTE_ADDR"];   //ip地址
         $data['notify_url'] = $this->notify;
         $data['trade_type'] = 'JSAPI';
-        $token = $this->getToken();
-        if(!$token) return;
-        $data['openid'] = Cache::get($token)['openid'];                 //获取保存用户的openid
+        if(!$open_id) return;
+        $data['openid'] = $open_id;                 //获取保存用户的openid
         $data['nonce_str'] = $this->createNoncestr();
         $data['sign'] = $this->MakeSign($data);
 		

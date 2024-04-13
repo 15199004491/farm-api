@@ -30,7 +30,7 @@ class Wxuser extends Controller {
     public  function getAccessToken()
     {
         $appid = 'wx5375bc6d5a7a6227';
-        $secret = '7942cffdecd4862b5746a5bafd17a93b';
+        $secret = '1a2s3d4f5g1a2s3d4f5g1a2s3d4f5g1a';
 
         $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".$appid."&secret=".$secret."";
 

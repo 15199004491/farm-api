@@ -58,6 +58,7 @@ class Sale extends Common
     public function saleDetail()
     {
         $data = $this->request->param();
+        
         $result = SaleModel::where('Id', $data['Id'])->find();
         return $this->json_return($result);
     }
