@@ -176,61 +176,16 @@ class Employ extends Common
     /**
      * 已参加的活动列表
      */
-    public function attendedEmploy()
-    {
-        $token = $this->getToken();
-        $username = explode(',',$token)[0];
-        
-        $activity = PersonModel::where('username', $username)->value('activity');
-        $condition = implode(",", json_decode($activity));
-        $result = EmployModel::where('id','in',$condition)->select();
-
-        return $this->json_return($result);
-    }
-    /**
-     * 发布的活动列表
-     */
-    public function publishList()
-    {
-        $token = $this->getToken();
-        $username = explode(',',$token)[0];
-
-        $result = EmployModel::where('publisher',$username)->select();
-        return $this->json_return($result);
-    }
-    // here--
-    /**
-     * 取消参加活动
-     */
-    public function cancleJoinEmploy()
+    public function activitiedEmploy()
     {
         $data = $this->request->param();
-        $token = $this->getToken();
-        $username = explode(',',$token)[0];
-        // 先把用户表里的活动删除
-        // 再把活动表里的用户删除
+        $result = PersonModel::where('login_mobile', $data['token'])->select();
         
-        $star = PersonModel::where('username', $username)->value('activity');
-        $newStar = array_diff(json_decode($star), [$data['username']]);
-        $param = json_encode(array_values($newStar));
-        $result = PersonModel::where('username',$username)->update(['activity' => $param]);
-
-        return $this->json_return($result);
-    }
-    /**
-     * 取消活动
-     */
-    public function cancleActivity()
-    {
-        $data = $this->request->param();
-        $token = $this->getToken();
-        $username = explode(',',$token)[0];
-        
-        $star = EmployModel::where('username', $username)->value('star');
-        $newStar = array_diff(json_decode($star), [$data['username']]);//$data['username']为取消的人
-        $param = json_encode(array_values($newStar));
-        $result = EmployModel::where('username',$username)->update(['star' => $param]);
-
-        return $this->json_return($result);
+        $attend = json_decode($result[0]['attend']);
+        $map_data = [
+            ['Id', 'in', $attend]
+        ];
+        $data_list = EmployModel::where($map_data)->order('update_time desc')->select();
+        return $this->json_return($data_list);
     }
 }
