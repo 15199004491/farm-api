@@ -1,5 +1,5 @@
 ﻿# Host: localhost  (Version: 5.5.53)
-# Date: 2024-04-14 00:59:17
+# Date: 2024-04-18 23:34:40
 # Generator: MySQL-Front 5.3  (Build 4.234)
 
 /*!40101 SET NAMES utf8 */;
@@ -344,6 +344,33 @@ CREATE TABLE `dp_admin_plugin` (
 /*!40000 ALTER TABLE `dp_admin_plugin` ENABLE KEYS */;
 
 #
+# Structure for table "dp_farm_advertisement"
+#
+
+DROP TABLE IF EXISTS `dp_farm_advertisement`;
+CREATE TABLE `dp_farm_advertisement` (
+  `Id` int(11) NOT NULL AUTO_INCREMENT,
+  `start` varchar(20) DEFAULT NULL COMMENT '开始时间',
+  `end` varchar(20) DEFAULT NULL COMMENT '结束时间',
+  `publisher` varchar(11) DEFAULT NULL COMMENT '发布者',
+  `area` varchar(10) DEFAULT '8-132' COMMENT '广告发布所在的团场',
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
+  `area_name` varchar(50) DEFAULT NULL COMMENT '所在地区的名称',
+  `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+  `img_url` varchar(50) DEFAULT NULL COMMENT '广告图片',
+  `page` varchar(20) DEFAULT NULL COMMENT '广告展示在哪个页面',
+  PRIMARY KEY (`Id`)
+) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='招工';
+
+#
+# Data for table "dp_farm_advertisement"
+#
+
+/*!40000 ALTER TABLE `dp_farm_advertisement` DISABLE KEYS */;
+INSERT INTO `dp_farm_advertisement` VALUES (6,'1713198842','1715790842','19399183170','8-132',1713198856,'农八师132团',1713198856,'farm/661d57039603b.png','land'),(7,'1713198969','1715790969','19399183170','8-1',1713198985,'农八师132团',1713198985,'farm/661d578569053.png','land'),(8,'1713199065','1729010265','19399183170','8-132',1713199069,'农八师132团',1713199069,'farm/661d57d6b23d6.png','land'),(9,'1713199091','1713285491','19399183170','8-132',1713199097,'农八师132团',1713199097,'farm/661d57ef3b186.png','land'),(10,'1713199694','1715791694','19399183170','8-132',1713199710,'农八师132团',1713199710,'farm/661d5a578ba3e.png','machine'),(11,'1713200574','1713286974','19399183170','7-122',1713200578,'农七师122团',1713200578,'farm/661d5dbbb0c4e.png','machine'),(12,'1713425935','1716017935','19399183170','8-132',1713425968,'农八师132团',1713425968,'farm/6620ce2d065c4.png','land');
+/*!40000 ALTER TABLE `dp_farm_advertisement` ENABLE KEYS */;
+
+#
 # Structure for table "dp_farm_employ"
 #
 
@@ -360,21 +387,21 @@ CREATE TABLE `dp_farm_employ` (
   `price` varchar(6) DEFAULT NULL COMMENT '单价',
   `explain` varchar(200) DEFAULT NULL COMMENT '说明',
   `publisher` varchar(11) DEFAULT NULL COMMENT '发布者',
-  `area` varchar(3) DEFAULT '132' COMMENT '信息发布所在的团场',
+  `area` varchar(10) DEFAULT '8-132' COMMENT '信息发布所在的团场',
   `top_start` int(10) DEFAULT NULL COMMENT '置顶开始时间',
   `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
   `top_end` int(10) DEFAULT NULL COMMENT '置顶结束时间',
   `area_name` varchar(50) DEFAULT NULL COMMENT '地区名称',
   `attend` varchar(255) DEFAULT '[]' COMMENT '参加的人的id集合',
   PRIMARY KEY (`Id`)
-) ENGINE=MyISAM AUTO_INCREMENT=21 DEFAULT CHARSET=utf8 COMMENT='招工';
+) ENGINE=MyISAM AUTO_INCREMENT=26 DEFAULT CHARSET=utf8 COMMENT='招工';
 
 #
 # Data for table "dp_farm_employ"
 #
 
 /*!40000 ALTER TABLE `dp_farm_employ` DISABLE KEYS */;
-INSERT INTO `dp_farm_employ` VALUES (16,'撒大声地111','2024-02-29 00:28','2024-06-30 00:28',23,'公斤','{\"name\":\"康源财富中心\",\"latitude\":43.843046,\"longitude\":87.572684}','{\"name\":\"浙北大酒店\",\"latitude\":43.849413,\"longitude\":87.570018}','12','恍恍惚惚hiu尽快工会法很尬第几集干哈干哈发发发金卡个会计法发卡机','15199004491','132',1713023386,1713015653,1744559386,'农八师132团','[9]'),(17,'130团找人干活','2024-04-02 00:20','2024-05-02 00:21',22,'天','{\"name\":\"康源财富中心\",\"latitude\":43.843046,\"longitude\":87.572684}','{\"name\":\"广汇京都小区\",\"latitude\":43.843819,\"longitude\":87.577218}','32','阿达撒打发撒的发生法师打发撒打发三大发啥打法是打发阿斯蒂芬撒的发多少','15199004491','130',NULL,1711988487,NULL,'农八师130团','[]'),(19,'知道168','2024-03-10 21:48','2024-05-16 21:48',2,'天','{\"name\":\"恒和大厦(北四东路)\",\"latitude\":44.306223,\"longitude\":86.074234}','{\"name\":\"石河子瑞丽国际商务宾馆\",\"latitude\":44.304283,\"longitude\":86.051326}','23','阿斯顿发送到发送到发撒旦法手动阀手动阀手动阀134234154','19399183170','132',1712922236,1713017725,1746973785,'农八师132团','[11,9]');
+INSERT INTO `dp_farm_employ` VALUES (16,'撒大声地111','2024-02-29 00:28','2024-06-30 00:28',23,'公斤','{\"name\":\"康源财富中心\",\"latitude\":43.843046,\"longitude\":87.572684}','{\"name\":\"浙北大酒店\",\"latitude\":43.849413,\"longitude\":87.570018}','12','恍恍惚惚hiu尽快工会法很尬第几集干哈干哈发发发金卡个会计法发卡机','15199004491','8-132',1713023386,1713015653,1744559386,'农八师132团','[]'),(17,'130团找人干活','2024-04-02 00:20','2024-05-02 00:21',22,'天','{\"name\":\"康源财富中心\",\"latitude\":43.843046,\"longitude\":87.572684}','{\"name\":\"广汇京都小区\",\"latitude\":43.843819,\"longitude\":87.577218}','32','阿达撒打发撒的发生法师打发撒打发三大发啥打法是打发阿斯蒂芬撒的发多少','15199004491','8-132',NULL,1711988487,NULL,'农八师130团','[]'),(19,'知道168','2024-03-10 21:48','2024-05-16 21:48',2,'天','{\"name\":\"恒和大厦(北四东路)\",\"latitude\":44.306223,\"longitude\":86.074234}','{\"name\":\"石河子瑞丽国际商务宾馆\",\"latitude\":44.304283,\"longitude\":86.051326}','23','阿斯顿发送到发送到发撒旦法手动阀手动阀手动阀134234154','19399183170','8-132',1712922236,1713017725,1746973785,'农八师132团','[9]'),(25,'adf受到法国三国','2024-04-17 16:05','2024-08-17 16:05',12,'天','{\"name\":\"新市区新疆维吾尔自治区图书馆北(北京南路东)\",\"latitude\":43.84367,\"longitude\":87.574}','{\"name\":\"中国银行(北京路支行)\",\"latitude\":43.842385,\"longitude\":87.573153}','211','阿斯顿发大水发大水发射点发射点发射点发','19399183170','7-122',NULL,1713341157,NULL,'农七师122团','[]');
 /*!40000 ALTER TABLE `dp_farm_employ` ENABLE KEYS */;
 
 #
@@ -397,6 +424,7 @@ CREATE TABLE `dp_farm_factory` (
   `identification` int(1) DEFAULT NULL COMMENT '认证状态://0--待认证,1--待打款,2--已打款，认证中,3--认证成功，4--已有发布信息',
   `show_mobile` int(1) DEFAULT '1' COMMENT '0--不展示；1--展示',
   `state` int(1) DEFAULT '1' COMMENT '0--暂停，1--正常收购',
+  `system_info` varchar(100) DEFAULT NULL COMMENT '系统消息',
   PRIMARY KEY (`Id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=18 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='收购';
 
@@ -405,7 +433,7 @@ CREATE TABLE `dp_farm_factory` (
 #
 
 /*!40000 ALTER TABLE `dp_farm_factory` DISABLE KEYS */;
-INSERT INTO `dp_farm_factory` VALUES (14,'阿阿斯顿法师打发412341234234','19399183170',1712844994,1713019486,1723385794,'[{\"type\":\"西瓜\",\"price\":\"2\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发的发的发的发生大发大沙发是打发\"},{\"type\":\"阿斯顿发\",\"price\":\"32\",\"unit\":\"公斤\",\"intro\":\"阿打发手动阀手动阀手动阀是打发\"},{\"type\":\"325\",\"price\":\"32\",\"unit\":\"公斤\",\"intro\":\"额外人情味儿请问二位二位\"}]','19399183170','{\"name\":\"蜀湘雅阁酒店\",\"latitude\":44.30705,\"longitude\":86.079353}','测试111','factory/6614ed7da3a5e.png',4,0,0),(17,NULL,NULL,NULL,1712672095,NULL,'[{\"type\":\"棉花\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发送到发送到发\"}]',NULL,NULL,NULL,NULL,NULL,1,1);
+INSERT INTO `dp_farm_factory` VALUES (14,'阿阿斯顿法师打发412341234234','19399183170',1712844994,1713179639,1723385794,'[{\"type\":\"西瓜\",\"price\":\"2\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发的发的发的发生大发大沙发是打发\"},{\"type\":\"阿斯顿发\",\"price\":\"32\",\"unit\":\"公斤\",\"intro\":\"阿打发手动阀手动阀手动阀是打发\"},{\"type\":\"325\",\"price\":\"32\",\"unit\":\"公斤\",\"intro\":\"额外人情味儿请问二位二位\"}]','19399183170','{\"name\":\"蜀湘雅阁酒店\",\"latitude\":44.30705,\"longitude\":86.079353}','测试111','factory/6614ed7da3a5e.png',4,1,1,'');
 /*!40000 ALTER TABLE `dp_farm_factory` ENABLE KEYS */;
 
 #
@@ -422,7 +450,7 @@ CREATE TABLE `dp_farm_land` (
   `price` varchar(6) DEFAULT NULL COMMENT '每亩地单价',
   `explain` varchar(200) DEFAULT NULL COMMENT '说明',
   `publisher` varchar(11) DEFAULT NULL COMMENT '发布者',
-  `area` varchar(3) DEFAULT '132' COMMENT '信息发布所在的团场',
+  `area` varchar(10) DEFAULT '8-132' COMMENT '信息发布所在的团场',
   `top_start` int(10) DEFAULT NULL COMMENT '置顶开始时间',
   `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
   `top_end` int(10) DEFAULT NULL COMMENT '置顶结束时间',
@@ -436,7 +464,7 @@ CREATE TABLE `dp_farm_land` (
 #
 
 /*!40000 ALTER TABLE `dp_farm_land` DISABLE KEYS */;
-INSERT INTO `dp_farm_land` VALUES (3,'但是发斯蒂芬萨达','2024-01','2029-03','{\"name\":\"新疆图书馆\",\"latitude\":43.840719,\"longitude\":87.57462}','234','撒打发撒的发生打法是的发送到发手动阀阿斯顿发士大夫啊','15199004491','132',1713023833,1711820110,1715615833,23234,NULL),(4,'在撒打发斯蒂芬','2023-03','2032-03','{\"name\":\"新疆图书馆\",\"latitude\":43.840719,\"longitude\":87.57462}','345','问题伍尔特我让他瓦尔塔问他瓦尔塔瓦尔塔瓦尔塔瓦尔塔伍尔特','15199004491','132',NULL,1711821261,NULL,2352345,NULL),(5,'阿斯顿发手动阀撒的发生','2024-03','2024-05','{\"name\":\"重庆老太婆摊摊面(北四东路店)\",\"latitude\":44.30705,\"longitude\":86.077945}','234','人防撒的发生代发手动阀三大发三大发都发放大啊都是法师打发撒的发生代发撒大萨达发','15199004491','132',1713023915,1713023910,1718812673,2342,'农八师132团'),(6,'啊沙发斯蒂芬撒的发生1234','2024-06','2026-12','{\"name\":\"石河子市人民政府北\",\"latitude\":44.30653,\"longitude\":86.07893}','21','打法是的发送到发手动阀是打法是的发送到发稍等234','19399183170','132',1712845012,1713019526,1715437012,12332,'农八师132团');
+INSERT INTO `dp_farm_land` VALUES (3,'但是发斯蒂芬萨达','2024-01','2029-03','{\"name\":\"新疆图书馆\",\"latitude\":43.840719,\"longitude\":87.57462}','234','撒打发撒的发生打法是的发送到发手动阀阿斯顿发士大夫啊','15199004491','8-132',1713023833,1711820110,1715615833,23234,NULL),(4,'在撒打发斯蒂芬','2023-03','2032-03','{\"name\":\"新疆图书馆\",\"latitude\":43.840719,\"longitude\":87.57462}','345','问题伍尔特我让他瓦尔塔问他瓦尔塔瓦尔塔瓦尔塔瓦尔塔伍尔特','15199004491','8-132',1712845012,1711821261,NULL,2352345,NULL),(5,'阿斯顿发手动阀撒的发生','2024-03','2024-05','{\"name\":\"重庆老太婆摊摊面(北四东路店)\",\"latitude\":44.30705,\"longitude\":86.077945}','234','人防撒的发生代发手动阀三大发三大发都发放大啊都是法师打发撒的发生代发撒大萨达发','15199004491','8-132',1713023915,1713023910,1718812673,2342,'农八师132团'),(6,'啊沙发斯蒂芬撒的发生1234','2024-06','2026-12','{\"name\":\"石河子市人民政府北\",\"latitude\":44.30653,\"longitude\":86.07893}','21','打法是的发送到发手动阀是打法是的发送到发稍等234','19399183170','8-132',1712845012,1713019526,1715437012,12332,'农八师132团');
 /*!40000 ALTER TABLE `dp_farm_land` ENABLE KEYS */;
 
 #
@@ -451,20 +479,20 @@ CREATE TABLE `dp_farm_machine` (
   `price` varchar(6) DEFAULT NULL COMMENT '每亩地单价',
   `explain` varchar(200) DEFAULT NULL COMMENT '说明',
   `publisher` varchar(11) DEFAULT NULL COMMENT '发布者',
-  `area` varchar(3) DEFAULT '132' COMMENT '信息发布所在的团场',
+  `area` varchar(10) DEFAULT '8-132' COMMENT '信息发布所在的团场',
   `top_start` int(10) DEFAULT NULL COMMENT '置顶开始时间',
   `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
   `top_end` int(10) DEFAULT NULL COMMENT '置顶结束时间',
   `area_name` varchar(50) DEFAULT NULL COMMENT '所在地区的名称',
   PRIMARY KEY (`Id`)
-) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='招工';
+) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='招工';
 
 #
 # Data for table "dp_farm_machine"
 #
 
 /*!40000 ALTER TABLE `dp_farm_machine` DISABLE KEYS */;
-INSERT INTO `dp_farm_machine` VALUES (1,'阿士大夫撒地方','{\"name\":\"中国工商银行(北京南路支行)\",\"latitude\":43.844155,\"longitude\":87.573893}','2314','早点发斯蒂芬撒的发生都发啥打法阿斯顿发送到发送到发说的发生的','15199004491','132',NULL,1711898531,NULL,NULL),(2,'阿士大夫撒地方','{\"name\":\"中国工商银行(北京南路支行)\",\"latitude\":43.844155,\"longitude\":87.573893}','2314','早点发斯蒂芬撒的发生都发啥打法阿斯顿发送到发送到发说的发生的','15199004491','132',1713023994,1711898537,1747151961,NULL),(3,'阿士大夫撒地方','{\"name\":\"中国工商银行(北京南路支行)\",\"latitude\":43.844155,\"longitude\":87.573893}','2314','早点发斯蒂芬撒的发生都发啥打法阿斯顿发送到发送到发说的发生的','15199004491','132',NULL,1711898550,NULL,NULL),(5,'双缝干涉发给电饭锅地方21321','{\"name\":\"石河子市东苑群岛花园(北四东路北)\",\"latitude\":44.307063,\"longitude\":86.081867}','213413','我认为儿童瓦尔塔瓦尔塔瓦尔塔瓦尔塔瓦尔塔瓦尔塔瓦尔塔','19399183170','132',1712845036,1713019666,1715437036,'农八师132团');
+INSERT INTO `dp_farm_machine` VALUES (1,'阿士大夫撒地方','{\"name\":\"中国工商银行(北京南路支行)\",\"latitude\":43.844155,\"longitude\":87.573893}','2314','早点发斯蒂芬撒的发生都发啥打法阿斯顿发送到发送到发说的发生的','15199004491','8-132',NULL,1711898531,NULL,NULL),(2,'阿士大夫撒地方','{\"name\":\"中国工商银行(北京南路支行)\",\"latitude\":43.844155,\"longitude\":87.573893}','2314','早点发斯蒂芬撒的发生都发啥打法阿斯顿发送到发送到发说的发生的','15199004491','8-132',1713023994,1711898537,1747151961,NULL),(3,'阿士大夫撒地方','{\"name\":\"中国工商银行(北京南路支行)\",\"latitude\":43.844155,\"longitude\":87.573893}','2314','早点发斯蒂芬撒的发生都发啥打法阿斯顿发送到发送到发说的发生的','15199004491','8-132',NULL,1711898550,NULL,NULL),(5,'双缝干涉发给电饭锅地方21321','{\"name\":\"石河子市东苑群岛花园(北四东路北)\",\"latitude\":44.307063,\"longitude\":86.081867}','213413','我认为儿童瓦尔塔瓦尔塔瓦尔塔瓦尔塔瓦尔塔瓦尔塔瓦尔塔','19399183170','8-132',1712845036,1713019666,1715437036,'农八师132团'),(6,'那你共撒点','{\"name\":\"新市区新疆维吾尔自治区图书馆北(北京南路东)\",\"latitude\":43.84367,\"longitude\":87.574}','12','但是发顺丰撒旦法师打发三大发啥打法是代发的算法','19399183170','8-132',NULL,1713334565,NULL,'农八师132团'),(7,'大事发生打发斯蒂芬','{\"name\":\"温州商业街\",\"latitude\":43.840056,\"longitude\":87.574034}','2134','阿打发斯蒂芬撒旦法师打发撒打发是打发','19399183170','8-132',NULL,1713334579,NULL,'农八师132团'),(8,'大法师的','{\"name\":\"中厦大厦\",\"latitude\":43.842398,\"longitude\":87.573166}','324','阿斯顿发生大法师多发点司法送达发啥打法萨达','19399183170','8-132',NULL,1713334593,NULL,'农八师132团'),(9,'阿的说法','{\"name\":\"1919酒类直供(北京南路店)\",\"latitude\":43.843927,\"longitude\":87.572459}','234','阿斯顿发所发生的法师打发三大发啥打法是打发','19399183170','8-132',NULL,1713334606,NULL,'农八师132团');
 /*!40000 ALTER TABLE `dp_farm_machine` ENABLE KEYS */;
 
 #
@@ -476,7 +504,7 @@ CREATE TABLE `dp_farm_purchase` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `explain` varchar(200) DEFAULT NULL COMMENT '说明',
   `publisher` varchar(11) DEFAULT NULL COMMENT '发布者',
-  `area` varchar(3) DEFAULT '132' COMMENT '信息发布所在的团场',
+  `area` varchar(10) DEFAULT '8-132' COMMENT '信息发布所在的团场',
   `top_start` int(10) DEFAULT NULL COMMENT '置顶开始时间',
   `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
   `top_end` int(10) DEFAULT NULL COMMENT '置顶结束时间',
@@ -485,14 +513,14 @@ CREATE TABLE `dp_farm_purchase` (
   `location` varchar(150) DEFAULT NULL COMMENT '地址',
   `area_name` varchar(50) DEFAULT NULL COMMENT '所在地区的名称',
   PRIMARY KEY (`Id`)
-) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='收购';
+) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='收购';
 
 #
 # Data for table "dp_farm_purchase"
 #
 
 /*!40000 ALTER TABLE `dp_farm_purchase` DISABLE KEYS */;
-INSERT INTO `dp_farm_purchase` VALUES (1,'阿斯顿发的发撒的发生都发啥打法是打发手打发撒代发','15199004491','132',NULL,1712416592,NULL,'[{\"type\":\"棉花\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯蒂芬撒地方撒地方撒打发说法\"}]','15199004491',NULL,NULL),(2,'这是顶部的通知3544356','15199004491','132',NULL,1713024904,NULL,'[{\"type\":\"这是新增的品类\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发士大夫\"},{\"type\":\"西瓜\",\"price\":\"21\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发送到发送到发撒旦法手动阀是的\"}]','15199004491','{\"name\":\"中国农业银行(石河子东苑兵团支行)\",\"latitude\":44.307059,\"longitude\":86.082535}','农八师132团'),(3,'大师傅撒旦法撒的发生代发撒打发三大发啥打法顶部的说明','15199004491','132',1712846033,1712416924,1715438033,'[{\"type\":\"西瓜\",\"price\":\"1\",\"unit\":\"公斤\",\"intro\":\"阿阿斯顿发的发的发生的放大啊\"},{\"type\":\"新增的品列\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发生的发送的\"}]','15199004491',NULL,NULL),(7,'水电费撒的发生地方撒旦法手打发撒都发啥打法萨达发撒代发12312','19399183170','132',NULL,1713019439,NULL,'[{\"type\":\"3333\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿法师打发撒的发生代发撒打发送达方\",\"id\":0},{\"type\":\"666\",\"price\":\"21\",\"unit\":\"斤\",\"intro\":\"阿第三方撒旦法撒旦法\",\"id\":1}]','19399183170','{\"name\":\"石河子市人民政府北\",\"latitude\":44.30653,\"longitude\":86.07893}','农八师132团'),(9,'aSASDSADFSADSDFASDfasdfasdfass丰富的法定所发生的法师打发三大发啥打法是都发啥打法萨达','19399183170','132',NULL,1712764404,NULL,'[{\"type\":\"棉花\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发手动阀是的法师打发撒打发\"}]','19399183170','{\"name\":\"石河子市人民政府北\",\"latitude\":44.30653,\"longitude\":86.07893}',NULL),(10,'手动阀手动阀手动阀手动阀三大发啥打法是都发啥打法',NULL,'132',1712846014,1712764542,1715438014,'[{\"type\":\"棉花\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿打发打发手动阀的说法三大发多发点\"}]','19399183170','{\"name\":\"金兰香牛肉面(开发区店)\",\"latitude\":44.307047,\"longitude\":86.081656}','农八师132团'),(11,'水电费撒的发生地方撒旦法手打发撒都发啥打法萨达发撒代发1232343',NULL,'132',NULL,1713019180,NULL,'[{\"type\":\"3253245\",\"price\":\"21\",\"unit\":\"斤\",\"intro\":\"阿第三方撒旦法撒旦法\"},{\"type\":\"测试777\",\"price\":\"12\",\"unit\":\"斤\",\"intro\":\"阿凡达发生的发生的法师打发三大发啥打法\"}]','19399183170','{\"name\":\"重庆老太婆摊摊面(北四东路店)\",\"latitude\":44.30705,\"longitude\":86.077945}','农八师132团'),(12,'水电费撒的发生地方撒旦法手打发撒都发啥打法萨达发撒代发',NULL,'132',NULL,1713019258,NULL,'[{\"type\":\"测试777\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿法师打发撒的发生代发撒打发送达方\",\"id\":0},{\"type\":\"3253245\",\"price\":\"21\",\"unit\":\"斤\",\"intro\":\"阿第三方撒旦法撒旦法\"}]','19399183170','{\"name\":\"石河子市人民政府北\",\"latitude\":44.30653,\"longitude\":86.07893}','农八师132团');
+INSERT INTO `dp_farm_purchase` VALUES (1,'阿斯顿发的发撒的发生都发啥打法是打发手打发撒代发','15199004491','8-132',NULL,1712416592,NULL,'[{\"type\":\"棉花\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯蒂芬撒地方撒地方撒打发说法\"}]','15199004491',NULL,NULL),(2,'这是顶部的通知3544356','15199004491','8-132',NULL,1713024904,NULL,'[{\"type\":\"这是新增的品类\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发士大夫\"},{\"type\":\"西瓜\",\"price\":\"21\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发送到发送到发撒旦法手动阀是的\"}]','15199004491','{\"name\":\"中国农业银行(石河子东苑兵团支行)\",\"latitude\":44.307059,\"longitude\":86.082535}','农八师132团'),(3,'大师傅撒旦法撒的发生代发撒打发三大发啥打法顶部的说明','15199004491','8-132',1712846033,1712416924,1715438033,'[{\"type\":\"西瓜\",\"price\":\"1\",\"unit\":\"公斤\",\"intro\":\"阿阿斯顿发的发的发生的放大啊\"},{\"type\":\"新增的品列\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发生的发送的\"}]','15199004491',NULL,NULL),(7,'水电费撒的发生地方撒旦法手打发撒都发啥打法萨达发撒代发12312','19399183170','8-132',NULL,1713019439,NULL,'[{\"type\":\"3333\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿法师打发撒的发生代发撒打发送达方\",\"id\":0},{\"type\":\"666\",\"price\":\"21\",\"unit\":\"斤\",\"intro\":\"阿第三方撒旦法撒旦法\",\"id\":1}]','19399183170','{\"name\":\"石河子市人民政府北\",\"latitude\":44.30653,\"longitude\":86.07893}','农八师132团'),(9,'aSASDSADFSADSDFASDfasdfasdfass丰富的法定所发生的法师打发三大发啥打法是都发啥打法萨达','19399183170','8-132',NULL,1712764404,NULL,'[{\"type\":\"棉花\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿发手动阀是的法师打发撒打发\"}]','19399183170','{\"name\":\"石河子市人民政府北\",\"latitude\":44.30653,\"longitude\":86.07893}',NULL),(10,'手动阀手动阀手动阀手动阀三大发啥打法是都发啥打法',NULL,'8-132',1712846014,1712764542,1715438014,'[{\"type\":\"棉花\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿打发打发手动阀的说法三大发多发点\"}]','19399183170','{\"name\":\"金兰香牛肉面(开发区店)\",\"latitude\":44.307047,\"longitude\":86.081656}','农八师132团'),(11,'水电费撒的发生地方撒旦法手打发撒都发啥打法萨达发撒代发1232343',NULL,'8-132',NULL,1713019180,NULL,'[{\"type\":\"3253245\",\"price\":\"21\",\"unit\":\"斤\",\"intro\":\"阿第三方撒旦法撒旦法\"},{\"type\":\"测试777\",\"price\":\"12\",\"unit\":\"斤\",\"intro\":\"阿凡达发生的发生的法师打发三大发啥打法\"}]','19399183170','{\"name\":\"重庆老太婆摊摊面(北四东路店)\",\"latitude\":44.30705,\"longitude\":86.077945}','农八师132团'),(12,'水电费撒的发生地方撒旦法手打发撒都发啥打法萨达发撒代发',NULL,'8-132',NULL,1713019258,NULL,'[{\"type\":\"测试777\",\"price\":\"12\",\"unit\":\"公斤\",\"intro\":\"阿斯顿法师打发撒的发生代发撒打发送达方\",\"id\":0},{\"type\":\"3253245\",\"price\":\"21\",\"unit\":\"斤\",\"intro\":\"阿第三方撒旦法撒旦法\"}]','19399183170','{\"name\":\"石河子市人民政府北\",\"latitude\":44.30653,\"longitude\":86.07893}','农八师132团');
 /*!40000 ALTER TABLE `dp_farm_purchase` ENABLE KEYS */;
 
 #
@@ -507,7 +535,7 @@ CREATE TABLE `dp_farm_sale` (
   `price` varchar(6) DEFAULT NULL COMMENT '每亩地单价',
   `explain` varchar(200) DEFAULT NULL COMMENT '说明',
   `publisher` varchar(11) DEFAULT NULL COMMENT '发布者',
-  `area` varchar(3) DEFAULT '132' COMMENT '信息发布所在的团场',
+  `area` varchar(10) DEFAULT '8-132' COMMENT '信息发布所在的团场',
   `top_start` int(10) DEFAULT NULL COMMENT '置顶开始时间',
   `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
   `top_end` int(10) DEFAULT NULL COMMENT '置顶结束时间',
@@ -522,7 +550,7 @@ CREATE TABLE `dp_farm_sale` (
 #
 
 /*!40000 ALTER TABLE `dp_farm_sale` DISABLE KEYS */;
-INSERT INTO `dp_farm_sale` VALUES (1,'撒旦法发','{\"name\":\"康源财富中心\",\"latitude\":43.843046,\"longitude\":87.572684}','12','阿斯顿发射点发射点发射点发射点发啊手动阀手动阀手动阀手动阀阿斯顿发射点阿斯蒂芬','15199004491','132',1713024053,1711906840,1715616053,3000,'克',NULL),(2,'地址发士大夫','{\"name\":\"中厦大厦\",\"latitude\":43.842398,\"longitude\":87.573166}','333','啊手动阀手动阀撒旦发射点发撒打发士大夫撒地方撒旦发射点发撒打发手动阀手动阀阿斯顿发射点发射点发射点发射点发射点发','15199004491','132',NULL,1711906874,NULL,23434,'亩',NULL),(3,'啊去问问12332114341','{\"name\":\"石河子市42小区(北一东路北)\",\"latitude\":44.29368435033423,\"longitude\":86.06886619049071}','121234','蓄势待发额企鹅额辅导费打撒方法是放大司法送达发撒代发','19399183170','132',NULL,1713019031,NULL,2147483647,'斤','农八师132团'),(4,'啊去问问','{\"name\":\"\",\"latitude\":44.30653,\"longitude\":86.07893}','12','蓄势待发额企鹅额辅导费打撒方法是放大司法送达发撒代发','19399183170','132',1712844939,1712771078,1746972913,2324,'斤','农八师132团');
+INSERT INTO `dp_farm_sale` VALUES (1,'撒旦法发','{\"name\":\"康源财富中心\",\"latitude\":43.843046,\"longitude\":87.572684}','12','阿斯顿发射点发射点发射点发射点发啊手动阀手动阀手动阀手动阀阿斯顿发射点阿斯蒂芬','15199004491','8-132',1713024053,1711906840,1715616053,3000,'克',NULL),(2,'地址发士大夫','{\"name\":\"中厦大厦\",\"latitude\":43.842398,\"longitude\":87.573166}','333','啊手动阀手动阀撒旦发射点发撒打发士大夫撒地方撒旦发射点发撒打发手动阀手动阀阿斯顿发射点发射点发射点发射点发射点发','15199004491','8-132',NULL,1711906874,NULL,23434,'亩',NULL),(3,'啊去问问12332114341','{\"name\":\"石河子市42小区(北一东路北)\",\"latitude\":44.29368435033423,\"longitude\":86.06886619049071}','121234','蓄势待发额企鹅额辅导费打撒方法是放大司法送达发撒代发','19399183170','8-132',NULL,1713019031,NULL,2147483647,'斤','农八师132团'),(4,'啊去问问','{\"name\":\"\",\"latitude\":44.30653,\"longitude\":86.07893}','12','蓄势待发额企鹅额辅导费打撒方法是放大司法送达发撒代发','19399183170','8-132',1712844939,1712771078,1746972913,2324,'斤','农八师132团');
 /*!40000 ALTER TABLE `dp_farm_sale` ENABLE KEYS */;
 
 #
@@ -555,7 +583,7 @@ DROP TABLE IF EXISTS `dp_farm_user`;
 CREATE TABLE `dp_farm_user` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `attend` varchar(255) DEFAULT '[]' COMMENT '参加',
-  `area` int(3) DEFAULT NULL COMMENT '所在地区',
+  `area` varchar(10) DEFAULT NULL COMMENT '所在地区',
   `create_time` varchar(11) DEFAULT NULL COMMENT '首次登录的时间',
   `open_id` varchar(30) DEFAULT NULL,
   `nick_name` varchar(20) DEFAULT NULL,
@@ -564,14 +592,14 @@ CREATE TABLE `dp_farm_user` (
   `login_mobile` varchar(11) DEFAULT NULL COMMENT '登录时候的手机号',
   `update_time` varchar(11) DEFAULT NULL COMMENT '最新登录时间',
   PRIMARY KEY (`Id`)
-) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='招工';
+) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='招工';
 
 #
 # Data for table "dp_farm_user"
 #
 
 /*!40000 ALTER TABLE `dp_farm_user` DISABLE KEYS */;
-INSERT INTO `dp_farm_user` VALUES (9,'[\"16\",\"19\"]',132,'1712946111','o3_wF49Hy37Jtp9zREV0RPHLWrH0','微信用户','https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4',1,'19399183170','1713027417'),(11,'[\"19\"]',NULL,'1713000874','o3_wF4z43zwoXVyOW-TgnS9cLWYI','微信用户','https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4',1,'15199004491','1713015052');
+INSERT INTO `dp_farm_user` VALUES (9,'[\"19\"]','8-132','1712946111','o3_wF49Hy37Jtp9zREV0RPHLWrH0','微信用户','https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4',1,'19399183170','1713425952'),(11,'[]','8-132','1713000874','o3_wF4z43zwoXVyOW-TgnS9cLWYI','微信用户','https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4',1,'15199004491','1713015052');
 /*!40000 ALTER TABLE `dp_farm_user` ENABLE KEYS */;
 
 #
