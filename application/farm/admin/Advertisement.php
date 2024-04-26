@@ -57,9 +57,10 @@ class Advertisement extends Common
         $data = $this->request->param();
 
         // 默认信息查询条件
+        $area = $data['area'];
         $map_data = [
             ['page', '=', $data['page']],
-            ['area', '=', $data['area']],
+            ['target_area', 'like', "%$area%"],
             ['end', '>', time()]
         ];
         

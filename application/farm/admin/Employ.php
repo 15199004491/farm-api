@@ -77,6 +77,15 @@ class Employ extends Common
         
         return $this->json_return($result);
     }
+    // 发送通知
+    public function sendNotice()
+    {
+        $data = $this->request->param();
+        
+        $result = EmployModel::where('Id', $data['Id'])->update(['notice' => $data['notice']]);
+        
+        return $this->json_return($result);
+    }
     /**
      * 当前人发布的招工列表
      */
