@@ -4,20 +4,45 @@ use think\Controller;
 use app\farm\model\Wxuser as WxuserModel;
 use app\farm\model\Suggest as SuggestModel;
 use app\farm\model\Person as PersonModel;
+use think\facade\Env;
 
 class Wxuser extends Controller {
+    // $filePath = Env::get('root_path') . 'public/factory/661cf2f3eb526.png';
+    /*微信图片敏感内容检测*/
+    public function imgSecCheck() {
+        $img = request()->param('img');
+        $img = file_get_contents($img);
+        $filePath = Env::get('root_path') . 'public/factory/661cf2f3eb526.png';
+        file_put_contents($filePath, $img);
+        $obj = new \CURLFile(realpath($filePath));
+        $obj->setMimeType("image/jpeg");
+        $file['media'] = $obj;
+        $url = "https://api.weixin.qq.com/wxa/img_sec_check?access_token=$token";
+        $info = $this->http_request($url,$file);
+        return $this->json_return(json_decode($info),true);
+    }
+    /*微信文字敏感内容检测*/
+    public function msgSecCheck()
+    {
+        $data = $this->request->post();
+        $data = json_encode(array('content' => $data['msg']), JSON_UNESCAPED_UNICODE);
+        $token = $this->getAccessToken();
+        $url = "https://api.weixin.qq.com/wxa/msg_sec_check?access_token=$token";
+        $info = $this->http_request($url, $data);
+        return $this->json_return(json_decode($info),true);
+    }
+
     /*获取access_token,不能用于获取用户信息的token*/
     public  function getAccessToken()
     {
         $appid = 'wx5375bc6d5a7a6227';
         $secret = 'f946359b33b372d190c2d9be6e2cb213';
-
-        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".$appid."&secret=".$secret."";
-
-        $data = file_get_contents($url);
-        return $data;
+        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$appid&secret=$secret";
+        $res = json_decode($this->http_request($url));
+        $access_token = $res->access_token;
+        return $access_token;
     }
-    //图片合法性验证
+    //发送数据
     public function http_request($url, $data = null)
     {
         $curl = curl_init();
@@ -40,9 +65,7 @@ class Wxuser extends Controller {
     }
     //  获取手机号
     public function getuserphonenumber() {
-        $tmp = $this->getAccessToken();
-        $tmptoken = json_decode($tmp);
-        $token = $tmptoken->access_token;
+        $token =  $this->getAccessToken();
         
         $data['code'] = $this->request->post()['code'];
 

@@ -42,9 +42,8 @@ class Wxuser extends Controller {
         $res = curl_exec($ch);
         curl_close($ch);
         return $res;
-        exit();
     }
-    //图片合法性验证
+    //发送数据
     public function http_request($url, $data = null)
     {
         $curl = curl_init();
@@ -64,7 +63,6 @@ class Wxuser extends Controller {
         curl_close($curl);
 
         return $output;
-        exit();
 
     }
     //  获取手机号
