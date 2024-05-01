@@ -7,23 +7,10 @@ use app\farm\model\Person as PersonModel;
 use think\facade\Env;
 
 class Wxuser extends Controller {
-    // $filePath = Env::get('root_path') . 'public/factory/661cf2f3eb526.png';
-    
-    /*微信图片敏感内容检测*/
-    public function imgSecCheck(){
-        $file = Env::get('root_path') . 'public/factory/661cf2f3eb526.png';
-        $media = ['media'=>new \CURLFile(realpath($file),'image/jpeg')];
-        $params = [
-            'access_token' => $this->getAccessToken()
-        ];
-        $request_params = $this->to_url_params($params);
-        define('IMG_SEC_CHECK','https://api.weixin.qq.com/wxa/img_sec_check?');//小程序图片检查
-        $url = IMG_SEC_CHECK . $request_params;
-        $result = json_decode($this->http_request($url, $media, true));
-        
-        //返回数据自行根据自己需要进行判断
-        return $this->json_return($result);
-    }
+    public function __construct() {
+		$this->appId = 'wx5375bc6d5a7a6227';
+		$this->appSecret = 'f946359b33b372d190c2d9be6e2cb213';
+	}
     public function to_url_params($params){
         $buff = "";
         foreach ($params as $k => $v) {
@@ -37,7 +24,7 @@ class Wxuser extends Controller {
     /*微信文字敏感内容检测*/
     public function msgSecCheck()
     {
-        $data = $this->request->post();
+        $data = request()->post();
         $data = json_encode(array('content' => $data['msg']), JSON_UNESCAPED_UNICODE);
         $token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/wxa/msg_sec_check?access_token=$token";
@@ -46,14 +33,19 @@ class Wxuser extends Controller {
     }
 
     /*获取access_token,不能用于获取用户信息的token*/
-    public  function getAccessToken()
+    public function getAccessToken()
     {
-        $appid = 'wx5375bc6d5a7a6227';
-        $secret = 'f946359b33b372d190c2d9be6e2cb213';
-        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$appid&secret=$secret";
+        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$this->appId&secret=$this->appSecret";
         $res = json_decode($this->http_request($url));
         $access_token = $res->access_token;
         return $access_token;
+    }
+    public function getToken()
+    {
+        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$this->appId&secret=$this->appSecret";
+        $res = json_decode($this->http_request($url));
+        $access_token = $res->access_token;
+        return $this->json_return($access_token);
     }
     //发送数据
     public function http_request($url, $data = null)
@@ -79,9 +71,7 @@ class Wxuser extends Controller {
     //  获取手机号
     public function getuserphonenumber() {
         $token =  $this->getAccessToken();
-        
-        $data['code'] = $this->request->post()['code'];
-
+        $data = request()->param();
         $url = "https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=$token";
         $info = $this->http_request($url,json_encode($data),'json');
         // 一定要注意转json，否则汇报47001错误
@@ -99,7 +89,7 @@ class Wxuser extends Controller {
     }
     
     public function login() {
-        $data = $this->request->post();
+        $data = request()->param();
         $model = new WxuserModel;
         $session = $model->login($data);
         $data['open_id'] = $session['openid'];
@@ -133,7 +123,7 @@ class Wxuser extends Controller {
     // 删除图片
     public function removeImage()
     {
-        $data = $this->request->param();
+        $data = request()->param();
         $file = $data['path'];
         if (file_exists($file)) {
             unlink($file);
@@ -144,7 +134,7 @@ class Wxuser extends Controller {
     }
     // 添加投诉/建议
     public function addSuggest() {
-        $data = $this->request->param();
+        $data = request()->param();
         $data['update_time'] = time();
         $param = SuggestModel::insertGetId($data);
        
@@ -152,7 +142,7 @@ class Wxuser extends Controller {
     }
     // 获取当前用户的信息
     public function getUserInfo() {
-        $data = $this->request->param();
+        $data = request()->param();
         $result = PersonModel::where('login_mobile', $data['token'])->find();
         return $this->json_result($result, 200, '操作成功');
     }
