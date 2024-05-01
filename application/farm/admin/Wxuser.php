@@ -8,18 +8,31 @@ use think\facade\Env;
 
 class Wxuser extends Controller {
     // $filePath = Env::get('root_path') . 'public/factory/661cf2f3eb526.png';
+    
     /*微信图片敏感内容检测*/
-    public function imgSecCheck() {
-        $img = request()->param('img');
-        $img = file_get_contents($img);
-        $filePath = Env::get('root_path') . 'public/factory/661cf2f3eb526.png';
-        file_put_contents($filePath, $img);
-        $obj = new \CURLFile(realpath($filePath));
-        $obj->setMimeType("image/jpeg");
-        $file['media'] = $obj;
-        $url = "https://api.weixin.qq.com/wxa/img_sec_check?access_token=$token";
-        $info = $this->http_request($url,$file);
-        return $this->json_return(json_decode($info),true);
+    public function imgSecCheck(){
+        $file = Env::get('root_path') . 'public/factory/661cf2f3eb526.png';
+        $media = ['media'=>new \CURLFile(realpath($file),'image/jpeg')];
+        $params = [
+            'access_token' => $this->getAccessToken()
+        ];
+        $request_params = $this->to_url_params($params);
+        define('IMG_SEC_CHECK','https://api.weixin.qq.com/wxa/img_sec_check?');//小程序图片检查
+        $url = IMG_SEC_CHECK . $request_params;
+        $result = json_decode($this->http_request($url, $media, true));
+        
+        //返回数据自行根据自己需要进行判断
+        return $this->json_return($result);
+    }
+    public function to_url_params($params){
+        $buff = "";
+        foreach ($params as $k => $v) {
+            if ($k != "sign") {
+                $buff .= $k . "=" . $v . "&";
+            }
+        }
+        $buff = trim($buff, "&");
+        return $buff;
     }
     /*微信文字敏感内容检测*/
     public function msgSecCheck()
