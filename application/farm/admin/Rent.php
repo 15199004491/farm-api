@@ -2,28 +2,28 @@
 
 namespace app\farm\admin;
 
-use app\farm\model\Dealmachine as DealmachineModel;
+use app\farm\model\Rent as RentModel;
 use app\common\controller\Common;
 
 /**
  * 
  * @package
  */
-class Dealmachine extends Common
+class Rent extends Common
 {
     // 删除信息
-    public function deleteMachine()
+    public function deleteRent()
     {
         $data = $this->request->param();
         
-        $result = DealmachineModel::where('Id', $data['Id'])->delete();
+        $result = RentModel::where('Id', $data['Id'])->delete();
         
         return $this->json_return($result);
     }
     /**
-     * 当前人发布的农机列表
+     * 当前人发布的二手房列表
      */
-    public function machineSelf()
+    public function rentSelf()
     {
         $data = $this->request->param();
         $publisher = $data['publisher'];
@@ -33,38 +33,38 @@ class Dealmachine extends Common
             ['publisher', '=', $publisher],
         ];
         
-        $data_list = DealmachineModel::where($map_data)->select();
+        $data_list = RentModel::where($map_data)->select();
 
         return $this->json_result($data_list, 200, '操作成功');
     } 
     /**
-     * 农机发布
+     * 二手房发布
      */
-    public function addMachine()
+    public function addRent()
     {
         $data = $this->request->param();
         $data['update_time'] = time();
         if(isset($data['Id'])) {
-            $param = DealmachineModel::where('Id', $data['Id'])->update($data);
+            $param = RentModel::where('Id', $data['Id'])->update($data);
         } else {
-            $param = DealmachineModel::insertGetId($data);
+            $param = RentModel::insertGetId($data);
         }
        
         return $this->json_return($param);
     }
     /**
-     * 查看农机信息
+     * 查看二手房信息
      */
-    public function machineDetail()
+    public function rentDetail()
     {
         $data = $this->request->param();
-        $result = DealmachineModel::where('Id', $data['Id'])->find();
+        $result = RentModel::where('Id', $data['Id'])->find();
         return $this->json_return($result);
     }
      /**
-     * 农机列表
+     * 二手房列表
      */
-    public function machineList()
+    public function rentList()
     {
         $data = $this->request->param();
 
@@ -73,16 +73,16 @@ class Dealmachine extends Common
             ['area', '=', $data['area']]
         ];
         
-        $data_list = DealmachineModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
+        $data_list = RentModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
 
         return $this->json_result($data_list, 200, '操作成功');
     } 
     // 置顶信息
-    public function topMachine()
+    public function topRent()
     {
         $data = $this->request->param();
         
-        $result = DealmachineModel::where('Id', $data['Id'])->update(['top_start' => $data['top_start'],'top_end' => $data['top_end']]);
+        $result = RentModel::where('Id', $data['Id'])->update(['top_start' => $data['top_start'],'top_end' => $data['top_end']]);
         
         return $this->json_return($result);
     }

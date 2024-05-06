@@ -9,10 +9,10 @@ use think\Model;
  * 活动模型
  * @package app\farm\model
  */
-class MachineSale extends Model
+class Rent extends Model
 {
     // 设置当前模型对应的完整数据表名称
-    protected $name = 'farm_machine_sale';
+    protected $name = 'farm_rent_house';
 
     // 自动写入时间戳
     protected $autoWriteTimestamp = true;

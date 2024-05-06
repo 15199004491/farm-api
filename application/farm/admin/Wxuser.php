@@ -144,8 +144,14 @@ class Wxuser extends Controller {
     public function getUserInfo() {
         $data = request()->param();
         $result = PersonModel::where('login_mobile', $data['token'])->find();
+        $result['house_vip'] = $result['house_vip_end'] > time()? true : false;
         return $this->json_result($result, 200, '操作成功');
     }
-    
+    // 房产会员
+    public function houseVip() {
+        $data = request()->param();
+        $result = PersonModel::where('login_mobile', $data['login_mobile'])->update($data);
+        return $this->json_result($result, 200, '操作成功');
+    }
 }
 ?>

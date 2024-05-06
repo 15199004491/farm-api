@@ -2,28 +2,28 @@
 
 namespace app\farm\admin;
 
-use app\farm\model\Dealmachine as DealmachineModel;
+use app\farm\model\SecondHouse as SecondHouseModel;
 use app\common\controller\Common;
 
 /**
  * 
  * @package
  */
-class Dealmachine extends Common
+class Secondhouse extends Common
 {
     // 删除信息
-    public function deleteMachine()
+    public function deleteHouse()
     {
         $data = $this->request->param();
         
-        $result = DealmachineModel::where('Id', $data['Id'])->delete();
+        $result = SecondHouseModel::where('Id', $data['Id'])->delete();
         
         return $this->json_return($result);
     }
     /**
-     * 当前人发布的农机列表
+     * 当前人发布的二手房列表
      */
-    public function machineSelf()
+    public function houseSelf()
     {
         $data = $this->request->param();
         $publisher = $data['publisher'];
@@ -33,56 +33,57 @@ class Dealmachine extends Common
             ['publisher', '=', $publisher],
         ];
         
-        $data_list = DealmachineModel::where($map_data)->select();
+        $data_list = SecondHouseModel::where($map_data)->select();
 
         return $this->json_result($data_list, 200, '操作成功');
     } 
     /**
-     * 农机发布
+     * 二手房发布
      */
-    public function addMachine()
+    public function addHouse()
     {
         $data = $this->request->param();
         $data['update_time'] = time();
         if(isset($data['Id'])) {
-            $param = DealmachineModel::where('Id', $data['Id'])->update($data);
+            $param = SecondHouseModel::where('Id', $data['Id'])->update($data);
         } else {
-            $param = DealmachineModel::insertGetId($data);
+            $param = SecondHouseModel::insertGetId($data);
         }
        
         return $this->json_return($param);
     }
     /**
-     * 查看农机信息
+     * 查看二手房信息
      */
-    public function machineDetail()
+    public function houseDetail()
     {
         $data = $this->request->param();
-        $result = DealmachineModel::where('Id', $data['Id'])->find();
+        $result = SecondHouseModel::where('Id', $data['Id'])->find();
         return $this->json_return($result);
     }
      /**
-     * 农机列表
+     * 二手房列表
      */
-    public function machineList()
+    public function houseList()
     {
         $data = $this->request->param();
 
         // 默认信息查询条件
         $map_data = [
-            ['area', '=', $data['area']]
+            ['area', '=', $data['area']],
+            ['end_time', '>', time()]
         ];
         
-        $data_list = DealmachineModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
+        $data_list = SecondHouseModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
 
         return $this->json_result($data_list, 200, '操作成功');
     } 
     // 置顶信息
-    public function topMachine()
+    public function topHouse()
     {
         $data = $this->request->param();
         
-        $result = DealmachineModel::where('Id', $data['Id'])->update(['top_start' => $data['top_start'],'top_end' => $data['top_end']]);
+        $result = SecondHouseModel::where('Id', $data['Id'])->update(['top_start' => $data['top_start'],'top_end' => $data['top_end']]);
         
         return $this->json_return($result);
     }
