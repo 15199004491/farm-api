@@ -70,8 +70,7 @@ class Secondhouse extends Common
 
         // 默认信息查询条件
         $map_data = [
-            ['area', '=', $data['area']],
-            ['end_time', '>', time()]
+            ['area', '=', $data['area']]
         ];
         
         $data_list = SecondHouseModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
