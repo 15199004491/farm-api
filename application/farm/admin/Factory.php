@@ -47,7 +47,7 @@ class Factory extends Common
     public function remit()
     {
         $data = $this->request->param();
-        $param = FactoryModel::where('Id', $data['id'])->update(['identification' => $data['state']]);
+        $param = FactoryModel::where('Id', $data['id'])->update(['identification' => $data['state'],'account' => $data['account']]);
         return $this->json_result($param, 200, '操作成功');
     }
     /**
@@ -70,7 +70,6 @@ class Factory extends Common
         // 默认信息查询条件
         $map_data = [
             ['name|info|explain', 'like', "%$keyword%"],
-            ['identification', '=', 4],
         ];
         
         $data_list = FactoryModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
