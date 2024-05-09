@@ -21,17 +21,31 @@ class Wxuser extends Controller {
         $buff = trim($buff, "&");
         return $buff;
     }
-    /*微信文字敏感内容检测*/
-    public function msgSecCheck()
+     /*微信文字敏感内容检测*/
+     public function msgSecCheck()
+     {
+         $data = request()->post();
+         $data = json_encode(array('content' => $data['msg']), JSON_UNESCAPED_UNICODE);
+         $token = $this->getAccessToken();
+         $url = "https://api.weixin.qq.com/wxa/msg_sec_check?access_token=$token";
+         $info = $this->http_request($url, $data);
+         return $this->json_return(json_decode($info),true);
+    }
+    /*微信图片敏感内容检测*/
+    public function imgSecCheck()
     {
-        $data = request()->post();
-        $data = json_encode(array('content' => $data['msg']), JSON_UNESCAPED_UNICODE);
+        $img = file_get_contents($_FILES['file']['tmp_name']);
+        $filePath = 'tmp1.png';
+        file_put_contents($filePath, $img);
+        $obj = new \CURLFile(realpath($filePath));
+        $obj->setMimeType("image/jpeg");
+        $file['media'] = $obj;
+        
         $token = $this->getAccessToken();
-        $url = "https://api.weixin.qq.com/wxa/msg_sec_check?access_token=$token";
-        $info = $this->http_request($url, $data);
+        $url = "https://api.weixin.qq.com/wxa/img_sec_check?access_token=$token";
+        $info = $this->http_request($url,$file,false);
         return $this->json_return(json_decode($info),true);
     }
-
     /*获取access_token,不能用于获取用户信息的token*/
     public function getAccessToken()
     {
@@ -48,24 +62,25 @@ class Wxuser extends Controller {
         return $this->json_return($access_token);
     }
     //发送数据
-    public function http_request($url, $data = null)
+    public function http_request($url, $data = null, $Content_Type = true)
     {
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-
+ 
         if (!empty($data)) {
             curl_setopt($curl, CURLOPT_POST, TRUE);
             curl_setopt($curl, CURLOPT_POSTFIELDS,$data);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json'
-            ));
+            if($Content_Type) {
+                curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                    'Content-Type: application/json'
+                ));
+            }
         }
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
         $output = curl_exec($curl);
         curl_close($curl);
-
         return $output;
     }
     //  获取手机号

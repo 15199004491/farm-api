@@ -47,7 +47,7 @@ class Factory extends Common
     public function remit()
     {
         $data = $this->request->param();
-        $param = FactoryModel::where('Id', $data['id'])->update(['identification' => $data['state'],'account' => $data['account']]);
+        $param = FactoryModel::where('Id', $data['id'])->update($data);
         return $this->json_result($param, 200, '操作成功');
     }
     /**
