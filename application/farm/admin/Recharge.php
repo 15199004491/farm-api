@@ -7,6 +7,7 @@
  
 namespace app\farm\admin;
 use app\common\controller\Common;
+use app\farm\model\Recharge as RechargeModel;
 use think\facade\Cache;
 
 
@@ -28,10 +29,10 @@ class Recharge extends Common{
         $data = $this->request->param();
 
         $reannumb = $this->randomkeys(6);  //生成随机数 以后可以当做 订单号
-        $pays ='0.01';                        //获取需要支付的价格·
+        $pays = $data['money'];                        //获取需要支付的价格·
 		
         #插入语句书写的地方
-        $conf = $this->payconfig('Bm'.$reannumb,$pays * 100, '置顶费用支付',$data['open_id']);
+        $conf = $this->payconfig('Bm'.$reannumb,$pays * 100, $data['msg'],$data['open_id']);
         if (!$conf || $conf['return_code'] == 'FAIL') exit("<script>alert('对不起，微信支付接口调用错误!" . $conf['return_msg'] . "');history.go(-1);</script>");
 		$this->orderid = $conf['prepay_id'];
         //微信相关配置如果不正的话，进入支付页面会出现错误信息
@@ -44,6 +45,8 @@ class Recharge extends Common{
         $jsApiObj["package"] = "prepay_id=" . $conf['prepay_id'];
         $jsApiObj["signType"] = "MD5";
         $jsApiObj["paySign"] = $this->MakeSign($jsApiObj);
+        // 创建订单
+        RechargeModel::insertGetId($data);
         return $this->json_result($jsApiObj, 200, '操作成功');
     }
 

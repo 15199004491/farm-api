@@ -69,7 +69,7 @@ class Factory extends Common
 
         // 默认信息查询条件
         $map_data = [
-            ['name|info|explain', 'like', "%$keyword%"],
+            ['name|explain', 'like', "%$keyword%"],
         ];
         
         $data_list = FactoryModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
