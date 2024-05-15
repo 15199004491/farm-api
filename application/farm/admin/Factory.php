@@ -57,6 +57,9 @@ class Factory extends Common
     {
         $data = $this->request->param();
         $result = FactoryModel::where('Id', $data['Id'])->find();
+        $count = $result['count'] + 1;
+        $result['count'] = $count;
+        FactoryModel::where('Id', $data['Id'])->update(['count' => $count]);
         return $this->json_return($result);
     }
      /**

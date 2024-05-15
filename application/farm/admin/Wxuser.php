@@ -102,22 +102,28 @@ class Wxuser extends Controller {
             return $this->json_result([], 409, '请求失败');
         }
     }
-    
+    // 登录获取用户信息
     public function login() {
         $data = request()->param();
         $model = new WxuserModel;
         $session = $model->login($data);
         $data['open_id'] = $session['openid'];
-		$data['nick_name'] = preg_replace('/[\xf0-\xf7].{3}/', '', $data['nick_name']);
-		$data['gender'] = $data['gender'] + 1;
         $data['update_time']=time();
         $info = PersonModel::where('login_mobile',$data['login_mobile'])->find();
         if($info) {
-            $result = PersonModel::where('login_mobile',$data['login_mobile'])->update($data);
+            PersonModel::where('login_mobile',$data['login_mobile'])->update($data);
         } else {
-            $data['create_time']=time();
-            $result = PersonModel::insertGetId($data);
+            PersonModel::insertGetId($data);
         }
+        $result = PersonModel::where('login_mobile',$data['login_mobile'])->find();
+		
+        return $this->json_return($result);
+    }
+    // 更新用户信息
+    public function ringUp() {
+        $data = request()->param();
+        $data['update_time']=time();
+        $result = PersonModel::where('login_mobile',$data['login_mobile'])->update($data);
 		
         return $this->json_return($result);
     }
