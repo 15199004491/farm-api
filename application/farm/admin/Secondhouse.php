@@ -67,10 +67,12 @@ class Secondhouse extends Common
     public function houseList()
     {
         $data = $this->request->param();
+        $keyword = $data['keyword'];
 
         // 默认信息查询条件
         $map_data = [
-            ['area', '=', $data['area']]
+            ['area', '=', $data['area']],
+            ['name|explain', 'like', "%$keyword%"]
         ];
         
         $data_list = SecondHouseModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
