@@ -43,6 +43,14 @@ class Factory extends Common
        
         return $this->json_return($param);
     }
+    // 法人提交身份证原件
+    public function legalIdCard()
+    {
+        $data = $this->request->param();
+        $param = FactoryModel::where('Id', $data['Id'])->update($data);
+       
+        return $this->json_return($param);
+    }
     // 切换加工厂的状态
     public function remit()
     {
