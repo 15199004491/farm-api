@@ -55,10 +55,12 @@ class Goods extends Common
     public function goodsPage()
     {
         $data = $this->request->param();
+        $keyword = $data['keyword'];
 
         // 默认信息查询条件
         $area = $data['area'];
         $map_data = [
+            ['title|desc|explain', 'like', "%$keyword%"],
             ['target_area', 'like', "%$area%"],
             ['end', '>', time()]
         ];

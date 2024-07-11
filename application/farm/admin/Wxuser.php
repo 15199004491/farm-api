@@ -113,6 +113,7 @@ class Wxuser extends Controller {
         if($info) {
             PersonModel::where('login_mobile',$data['login_mobile'])->update($data);
         } else {
+            $data['create_time']=time();
             PersonModel::insertGetId($data);
         }
         $result = PersonModel::where('login_mobile',$data['login_mobile'])->find();
