@@ -52,6 +52,14 @@ class NewHouse extends Common
        
         return $this->json_return($param);
     }
+    // 投放区域
+    public function regionalDelivery()
+    {
+        $data = $this->request->param();
+        $data['payment_time'] = time();
+        $param = NewHouseModel::where('Id', $data['Id'])->update($data);
+        return $this->json_return($param);
+    }
     /**
      * 查看新房信息
      */
@@ -61,24 +69,24 @@ class NewHouse extends Common
         $result = NewHouseModel::where('Id', $data['Id'])->find();
         return $this->json_return($result);
     }
-     /**
+    /**
      * 新房列表
      */
     public function newHouseList()
     {
         $data = $this->request->param();
-        $keyword = $data['keyword'];
 
         // 默认信息查询条件
+        $area = $data['area'];
         $map_data = [
-            ['area', '=', $data['area']],
-            ['name|explain', 'like', "%$keyword%"]
+            ['target_area', 'like', "%$area%"],
+            ['end', '>', time()]
         ];
         
-        $data_list = NewHouseModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
+        $result = NewHouseModel::where($map_data)->select();
 
-        return $this->json_result($data_list, 200, '操作成功');
-    } 
+        return $this->json_result($result, 200, '操作成功');
+    }
     // 置顶信息
     public function topHouse()
     {
