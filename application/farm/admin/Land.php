@@ -59,6 +59,9 @@ class Land extends Common
     {
         $data = $this->request->param();
         $result = LandModel::where('Id', $data['Id'])->find();
+        $count = $result['count'] + 1;
+        $result['count'] = $count;
+        LandModel::where('Id', $data['Id'])->update(['count' => $count]);
         return $this->json_return($result);
     }
      /**

@@ -75,10 +75,12 @@ class NewHouse extends Common
     public function newHouseList()
     {
         $data = $this->request->param();
+        $keyword = $data['keyword'];
 
         // 默认信息查询条件
         $area = $data['area'];
         $map_data = [
+            ['name|explain', 'like', "%$keyword%"],
             ['target_area', 'like', "%$area%"],
             ['end', '>', time()]
         ];
