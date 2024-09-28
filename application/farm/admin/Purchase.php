@@ -72,7 +72,7 @@ class Purchase extends Common
         // 默认信息查询条件
         $map_data = [
             ['info|explain', 'like', "%$keyword%"],
-            ['area', '=', $data['area']]
+            // ['area', '=', $data['area']]
         ];
         
         $data_list = PurchaseModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();

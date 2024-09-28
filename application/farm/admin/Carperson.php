@@ -59,6 +59,9 @@ class Carperson extends Common
     {
         $data = $this->request->param();
         $result = CarPersonModel::where('Id', $data['Id'])->find();
+        $count = $result['count'] + 1;
+        $result['count'] = $count;
+        CarPersonModel::where('Id', $data['Id'])->update(['count' => $count]);
         return $this->json_return($result);
     }
      /**

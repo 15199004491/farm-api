@@ -66,8 +66,10 @@ class Factory extends Common
         $data = $this->request->param();
         $result = FactoryModel::where('Id', $data['Id'])->find();
         $count = $result['count'] + 1;
+        $today_count = $result['today_count'] + 1;
         $result['count'] = $count;
-        FactoryModel::where('Id', $data['Id'])->update(['count' => $count]);
+        $result['today_count'] = $today_count;
+        FactoryModel::where('Id', $data['Id'])->update(['count' => $count,'today_count' => $today_count]);
         return $this->json_return($result);
     }
      /**

@@ -67,6 +67,9 @@ class NewHouse extends Common
     {
         $data = $this->request->param();
         $result = NewHouseModel::where('Id', $data['Id'])->find();
+        $count = $result['count'] + 1;
+        $result['count'] = $count;
+        NewHouseModel::where('Id', $data['Id'])->update(['count' => $count]);
         return $this->json_return($result);
     }
     /**

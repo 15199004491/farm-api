@@ -59,6 +59,9 @@ class Machine extends Common
     {
         $data = $this->request->param();
         $result = MachineModel::where('Id', $data['Id'])->find();
+        $count = $result['count'] + 1;
+        $result['count'] = $count;
+        MachineModel::where('Id', $data['Id'])->update(['count' => $count]);
         return $this->json_return($result);
     }
      /**

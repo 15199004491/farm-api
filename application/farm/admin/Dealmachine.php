@@ -59,6 +59,9 @@ class Dealmachine extends Common
     {
         $data = $this->request->param();
         $result = DealmachineModel::where('Id', $data['Id'])->find();
+        $count = $result['count'] + 1;
+        $result['count'] = $count;
+        DealmachineModel::where('Id', $data['Id'])->update(['count' => $count]);
         return $this->json_return($result);
     }
      /**

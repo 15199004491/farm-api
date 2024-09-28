@@ -58,8 +58,10 @@ class Sale extends Common
     public function saleDetail()
     {
         $data = $this->request->param();
-        
         $result = SaleModel::where('Id', $data['Id'])->find();
+        $count = $result['count'] + 1;
+        $result['count'] = $count;
+        SaleModel::where('Id', $data['Id'])->update(['count' => $count]);
         return $this->json_return($result);
     }
     /**
@@ -73,7 +75,7 @@ class Sale extends Common
         // 默认信息查询条件
         $map_data = [
             ['title|explain', 'like', "%$keyword%"],
-            ['area', '=', $data['area']]
+            // ['area', '=', $data['area']]
         ];
         
         $data_list = SaleModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();

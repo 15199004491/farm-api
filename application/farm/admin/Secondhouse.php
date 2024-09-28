@@ -59,6 +59,9 @@ class Secondhouse extends Common
     {
         $data = $this->request->param();
         $result = SecondHouseModel::where('Id', $data['Id'])->find();
+        $count = $result['count'] + 1;
+        $result['count'] = $count;
+        SecondHouseModel::where('Id', $data['Id'])->update(['count' => $count]);
         return $this->json_return($result);
     }
      /**

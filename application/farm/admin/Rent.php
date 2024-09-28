@@ -59,6 +59,9 @@ class Rent extends Common
     {
         $data = $this->request->param();
         $result = RentModel::where('Id', $data['Id'])->find();
+        $count = $result['count'] + 1;
+        $result['count'] = $count;
+        RentModel::where('Id', $data['Id'])->update(['count' => $count]);
         return $this->json_return($result);
     }
      /**
