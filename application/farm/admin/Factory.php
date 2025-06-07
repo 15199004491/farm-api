@@ -65,11 +65,18 @@ class Factory extends Common
     {
         $data = $this->request->param();
         $result = FactoryModel::where('Id', $data['Id'])->find();
+        // 当前时间和上一个访客的日期一致 +1
+        $time = date('Y-m-d');
+        if($time == $result['visit_time']) {
+            $today_count = $result['today_count'] + 1;
+        } else { // 不一致 ==1 并且更新visit_time为当前日期
+            $result['visit_time'] = $time;
+            $today_count = 1;
+        }
         $count = $result['count'] + 1;
-        $today_count = $result['today_count'] + 1;
         $result['count'] = $count;
         $result['today_count'] = $today_count;
-        FactoryModel::where('Id', $data['Id'])->update(['count' => $count,'today_count' => $today_count]);
+        FactoryModel::where('Id', $data['Id'])->update(['count' => $count,'today_count' => $today_count,'visit_time' => $result['visit_time']]);
         return $this->json_return($result);
     }
      /**

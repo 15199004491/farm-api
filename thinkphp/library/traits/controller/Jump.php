@@ -145,6 +145,7 @@ trait Jump
     {
         return $param? $this->json_result($param, 200, '操作成功') : $this->json_result([], 200, '操作失败');
     }
+    
     /**
      * 获取文件的扩展名
      */
