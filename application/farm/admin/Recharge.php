@@ -223,7 +223,6 @@ class Recharge extends Common{
         $data['nonce_str'] = $this->createNoncestr();
         $data['sign'] = $this->MakeSign($data);
 		
-		
         $xml = $this->ToXml($data);
         $curl = curl_init(); // 启动一个CURL会话
 		
@@ -255,19 +254,6 @@ class Recharge extends Common{
             $str .= substr($chars, mt_rand(0, strlen($chars) - 1), 1);
         }
         return $str;
-    }
-
-    /**
-     *    作用：产生随机字符串，不长于32位
-     */
-    public function randomkeys($length)
-    {
-        $pattern = '1234567890123456789012345678905678901234';
-        $key = null;
-        for ($i = 0; $i < $length; $i++) {
-            $key .= $pattern{mt_rand(0, 30)};    //生成php随机数
-        }
-        return $key;
     }
 
     /**

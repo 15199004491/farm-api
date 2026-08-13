@@ -54,7 +54,7 @@ return [
     'auto_bind_module'       => false,
     // 注册的根命名空间
     'root_namespace'         => ['plugins' => Env::get('root_path'). 'plugins/'],
-    // 默认输出类型
+    // 默认输出类型 here---
     'default_return_type'    => 'html',
     // 默认AJAX 数据返回格式,可选json xml ...
     'default_ajax_return'    => 'json',

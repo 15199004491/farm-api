@@ -145,7 +145,33 @@ trait Jump
     {
         return $param? $this->json_result($param, 200, '操作成功') : $this->json_result([], 200, '操作失败');
     }
-    
+    /**
+     * 格式化参数格式化成url参数
+     */
+    protected function ToUrlParams($arr)
+    {
+        $buff = "";
+        foreach ($arr as $k => $v) {
+            if ($k != "sign" && $v != "" && !is_array($v)) {
+                $buff .= $k . "=" . $v . "&";
+            }
+        }
+
+        $buff = trim($buff, "&");
+        return $buff;
+    }
+    /**
+     *    作用：产生随机字符串，不长于32位
+     */
+    public function randomkeys($length)
+    {
+        $pattern = '1234567890123456789012345678905678901234';
+        $key = null;
+        for ($i = 0; $i < $length; $i++) {
+            $key .= $pattern{mt_rand(0, 30)};    //生成php随机数
+        }
+        return $key;
+    }
     /**
      * 获取文件的扩展名
      */
