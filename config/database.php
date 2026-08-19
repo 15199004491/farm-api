@@ -6,11 +6,11 @@ return [
     'type'            => 'mysql',
     // 服务器地址   
     'hostname'        => 'localhost',
-    // 数据库名   mysql7225977_db
+    // 数据库名   test housefactory
     'database'        => 'test',
-    // 用户名   mysql7225977
+    // 用户名   root housefactory
     'username'        => 'root',
-    // 密码  jojyFYtjLn
+    // 密码  root ftXr3SEGsTMZDEj6
     'password'        => 'root',
     // 端口
     'hostport'        => '3306',

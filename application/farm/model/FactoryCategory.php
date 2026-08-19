@@ -1,17 +1,16 @@
 <?php
 
-
 namespace app\farm\model;
 
 use think\Model;
 
 /**
- * 活动模型
+ * 加工厂收购品类模型
  * @package app\farm\model
  */
-class Factory extends Model
+class FactoryCategory extends Model
 {
-    protected $name = 'farm_factory';
+    protected $name = 'farm_factory_category';
 
     protected $autoWriteTimestamp = true;
 }

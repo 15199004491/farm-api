@@ -5,113 +5,362 @@ namespace app\farm\admin;
 use app\farm\model\Factory as FactoryModel;
 use app\common\controller\Common;
 
-/**
- * 
- * @package
- */
 class Factory extends Common
 {
-    /**
-     * 个人名下的加工厂列表
-     */
-    public function factorySelf()
+    private function formatCategory($item)
     {
-        $data = $this->request->param();
-        $publisher = $data['publisher'];
-
-        // 默认信息查询条件
-        $map_data = [
-            ['publisher', '=', $publisher],
-        ];
-        
-        $data_list = FactoryModel::where($map_data)->select();
-
-        return $this->json_result($data_list, 200, '操作成功');
-    } 
-    /**
-     * 添加加工厂信息
-     */
-    public function addFactory()
-    {
-        $data = $this->request->param();
-        $data['update_time'] = time();
-        if(isset($data['Id'])) {
-            $param = FactoryModel::where('Id', $data['Id'])->update($data);
-        } else {
-            $param = FactoryModel::insertGetId($data);
+        if (is_array($item)) {
+            if (isset($item['category']) && is_string($item['category'])) {
+                $item['category'] = json_decode($item['category'], true) ?: [];
+            }
+            if (!isset($item['category'])) {
+                $item['category'] = [];
+            }
         }
-       
-        return $this->json_return($param);
+        return $item;
     }
-    // 法人提交身份证原件
-    public function legalIdCard()
+
+    private function formatCategoryList($list)
     {
-        $data = $this->request->param();
-        $param = FactoryModel::where('Id', $data['Id'])->update($data);
-       
-        return $this->json_return($param);
-    }
-    // 切换加工厂的状态
-    public function remit()
-    {
-        $data = $this->request->param();
-        $param = FactoryModel::where('Id', $data['id'])->update($data);
-        return $this->json_result($param, 200, '操作成功');
-    }
-    /**
-     * 查看加工厂信息
-     */
-    public function factoryDetail()
-    {
-        $data = $this->request->param();
-        $result = FactoryModel::where('Id', $data['Id'])->find();
-        // 当前时间和上一个访客的日期一致 +1
-        $time = date('Y-m-d');
-        if($time == $result['visit_time']) {
-            $today_count = $result['today_count'] + 1;
-        } else { // 不一致 ==1 并且更新visit_time为当前日期
-            $result['visit_time'] = $time;
-            $today_count = 1;
+        foreach ($list as &$item) {
+            $item = $this->formatCategory($item);
         }
-        $count = $result['count'] + 1;
-        $result['count'] = $count;
-        $result['today_count'] = $today_count;
-        FactoryModel::where('Id', $data['Id'])->update(['count' => $count,'today_count' => $today_count,'visit_time' => $result['visit_time']]);
-        return $this->json_return($result);
+        unset($item);
+        return $list;
     }
-     /**
-     * 加工厂列表
+
+    /**
+     * 加工厂列表（支持分页、搜索、认证状态筛选）
      */
     public function factoryList()
     {
         $data = $this->request->param();
-        $keyword = $data['keyword'];
 
-        // 默认信息查询条件
-        $map_data = [
-            ['name|explain', 'like', "%$keyword%"],
+        $page      = isset($data['page'])      ? intval($data['page'])      : 1;
+        $limit     = isset($data['limit'])     ? intval($data['limit'])     : 10;
+        $keyword   = isset($data['keyword'])   ? trim($data['keyword'])     : '';
+        $verified  = isset($data['verified'])  ? $data['verified']          : '';
+        $distance  = isset($data['distance'])  ? $data['distance']          : '';
+        $latitude  = isset($data['latitude'])  ? $data['latitude']          : '';
+        $longitude = isset($data['longitude']) ? $data['longitude']         : '';
+
+        $map = [];
+
+        if ($keyword !== '') {
+            $map[] = ['name|address|explain', 'like', "%{$keyword}%"];
+        }
+        if ($verified !== '') {
+            $map[] = ['verified', '=', intval($verified)];
+        }
+
+        $query = FactoryModel::where($map);
+
+        if ($distance !== '' && $latitude !== '' && $longitude !== '') {
+            $radius  = floatval($distance);
+            $userLat = floatval($latitude);
+            $userLng = floatval($longitude);
+
+            if ($radius > 0) {
+                $haversine = "6371 * 2 * ATAN2(
+                    SQRT(
+                        POW(SIN(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.latitude')) - ?)) / 2), 2) +
+                        COS(RADIANS(?)) * COS(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.latitude')))) *
+                        POW(SIN(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.longitude')) - ?)) / 2), 2)
+                    ),
+                    SQRT(
+                        1 - (
+                            POW(SIN(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.latitude')) - ?)) / 2), 2) +
+                            COS(RADIANS(?)) * COS(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.latitude')))) *
+                            POW(SIN(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.longitude')) - ?)) / 2), 2)
+                        )
+                    )
+                ) <= ?";
+
+                $query->whereRaw($haversine, [
+                    $userLat, $userLat, $userLng,
+                    $userLat, $userLat, $userLng,
+                    $radius,
+                ]);
+            }
+        }
+
+        $total = $query->count();
+        $list  = $query->order('update_time desc')
+            ->page($page, $limit)
+            ->select()
+            ->toArray();
+
+        $list = $this->formatCategoryList($list);
+
+        $result = [
+            'total' => $total,
+            'page'  => $page,
+            'limit' => $limit,
+            'list'  => $list,
         ];
-        
-        $data_list = FactoryModel::where($map_data)->order('update_time desc')->limit($data['start']-1, $data['end'])->select();
 
-        return $this->json_result($data_list, 200, '操作成功');
-    } 
-    // 置顶信息
-    public function topFactory()
+        return $this->json_result($result, 200, '操作成功');
+    }
+
+    /**
+     * 当前用户发布的加工厂列表
+     * 参数：open_id
+     */
+    public function factorySelf()
+    {
+        $data   = $this->request->param();
+        $openId = isset($data['open_id']) ? $data['open_id'] : '';
+
+        if (empty($openId)) {
+            return $this->json_result('', 403, '无权限查看');
+        }
+
+        $list = FactoryModel::where('open_id', $openId)
+            ->order('update_time desc')
+            ->select()
+            ->toArray();
+
+        $list = $this->formatCategoryList($list);
+
+        return $this->json_result($list, 200, '操作成功');
+    }
+
+    /**
+     * 加工厂详情（含浏览量统计）
+     */
+    public function factoryDetail()
     {
         $data = $this->request->param();
-        
-        $result = FactoryModel::where('Id', $data['Id'])->update(['top_start' => $data['top_start'],'top_end' => $data['top_end']]);
-        
-        return $this->json_return($result);
+        $id   = isset($data['Id']) ? intval($data['Id']) : 0;
+
+        if ($id <= 0) {
+            return $this->json_result('', 400, '参数错误');
+        }
+
+        $result = FactoryModel::where('Id', $id)->find();
+
+        if (!$result) {
+            return $this->json_result('', 404, '加工厂不存在');
+        }
+
+        $time = date('Y-m-d');
+        if ($time == $result['visit_time']) {
+            $today_count = $result['today_count'] + 1;
+        } else {
+            $result['visit_time'] = $time;
+            $today_count = 1;
+        }
+        $count = $result['count'] + 1;
+        FactoryModel::where('Id', $id)->update([
+            'count'       => $count,
+            'today_count' => $today_count,
+            'visit_time'  => $result['visit_time'],
+        ]);
+
+        $result['count']       = $count;
+        $result['today_count'] = $today_count;
+
+        $result = $this->formatCategory($result->toArray());
+
+        return $this->json_result($result, 200, '操作成功');
     }
+
     /**
-     * 删除加工厂信息
+     * 新增 / 编辑 加工厂（入驻）
+     * 参数：全部表单字段 + open_id（发布者openid）
+     */
+    public function addFactory()
+    {
+        $data   = $this->request->param();
+        $id     = isset($data['Id']) ? intval($data['Id']) : 0;
+        $openId = isset($data['open_id']) ? $data['open_id'] : '';
+
+        $data['update_time'] = time();
+
+        if ($id > 0) {
+            return $this->updateFactory($data, $id, $openId);
+        }
+
+        return $this->createFactory($data, $openId);
+    }
+
+    private function updateFactory($data, $id, $openId)
+    {
+        $factory = FactoryModel::where('Id', $id)->find();
+
+        if (!$factory) {
+            return $this->json_result('', 404, '加工厂不存在');
+        }
+
+        if ($openId === '' || $factory['open_id'] !== $openId) {
+            return $this->json_result('', 403, '无权修改该加工厂');
+        }
+
+        unset($data['open_id']);
+
+        $result = FactoryModel::where('Id', $id)->update($data);
+
+        if ($result === false) {
+            return $this->json_result('', 500, '修改失败');
+        }
+
+        return $this->json_result(['Id' => $id], 200, '修改成功');
+    }
+
+    private function createFactory($data, $openId)
+    {
+        if ($openId === '') {
+            return $this->json_result('', 403, '无权限创建');
+        }
+
+        $data['create_time'] = time();
+        $data['open_id']     = $openId;
+        $data['count']       = 0;
+        $data['today_count'] = 0;
+        $data['visit_time']  = date('Y-m-d');
+        $data['verified']    = isset($data['verified']) ? intval($data['verified']) : 0;
+        $data['top_start']   = 0;
+        $data['top_end']     = 0;
+
+        $newId = FactoryModel::insertGetId($data);
+
+        if (!$newId) {
+            return $this->json_result('', 500, '添加失败');
+        }
+
+        return $this->json_result(['Id' => $newId], 200, '添加成功');
+    }
+
+    /**
+     * 删除加工厂
+     * 参数：Id, open_id（验证是否本人发布）
      */
     public function deleteFactory()
     {
+        $data   = $this->request->param();
+        $id     = isset($data['Id']) ? intval($data['Id']) : 0;
+        $openId = isset($data['open_id']) ? $data['open_id'] : '';
+
+        if ($id <= 0) {
+            return $this->json_result('', 400, '参数错误');
+        }
+
+        $factory = FactoryModel::where('Id', $id)->find();
+        if (!$factory) {
+            return $this->json_result('', 404, '加工厂不存在');
+        }
+
+        if ($openId === '' || $factory['open_id'] !== $openId) {
+            return $this->json_result('', 403, '无权删除该加工厂');
+        }
+
+        $result = FactoryModel::where('Id', $id)->delete();
+
+        if ($result !== false) {
+            return $this->json_result('', 200, '删除成功');
+        }
+        return $this->json_result('', 500, '删除失败');
+    }
+
+    /**
+     * 加工厂发布（通知+备注+品类 一次性保存）
+     */
+    public function publishFactory()
+    {
         $data = $this->request->param();
-        $result = FactoryModel::where('Id', $data['Id'])->delete();
-        return $this->json_return($result);
+        $id   = isset($data['Id']) ? intval($data['Id']) : 0;
+
+        if ($id <= 0) {
+            return $this->json_result('', 400, '参数错误');
+        }
+
+        $factory = FactoryModel::where('Id', $id)->find();
+        if (!$factory) {
+            return $this->json_result('', 404, '加工厂不存在');
+        }
+
+        $updateData = ['update_time' => time()];
+
+        if (isset($data['notice'])) {
+            $updateData['notice'] = $data['notice'];
+        }
+        if (isset($data['remark'])) {
+            $updateData['remark'] = $data['remark'];
+        }
+
+        if (isset($data['category']) && $data['category'] !== '') {
+            $category = is_string($data['category'])
+                ? json_decode($data['category'], true)
+                : $data['category'];
+
+            if (is_array($category)) {
+                $cleaned = [];
+                foreach ($category as $cat) {
+                    if (empty($cat['name']) || empty($cat['price'])) {
+                        continue;
+                    }
+                    $cleaned[] = [
+                        'name'   => $cat['name'],
+                        'price'  => $cat['price'],
+                        'unit'   => isset($cat['unit']) ? $cat['unit'] : '斤',
+                        'remark' => isset($cat['remark']) ? $cat['remark'] : '',
+                    ];
+                }
+                $updateData['category'] = json_encode($cleaned, JSON_UNESCAPED_UNICODE);
+            }
+        }
+
+        FactoryModel::where('Id', $id)->update($updateData);
+
+        $result = FactoryModel::where('Id', $id)->find();
+        $result = $this->formatCategory($result->toArray());
+
+        return $this->json_result($result, 200, '发布成功');
+    }
+
+    /**
+     * 加工厂认证
+     * 参数：open_id, license（营业执照号）, id_card（身份证号）, Id（可选，加工厂ID）
+     */
+    public function verifyFactory()
+    {
+        $data   = $this->request->param();
+        $openId = isset($data['open_id']) ? $data['open_id'] : '';
+        $license = isset($data['license']) ? trim($data['license']) : '';
+        $idCard  = isset($data['id_card']) ? trim($data['id_card']) : '';
+        $id      = isset($data['Id']) ? intval($data['Id']) : 0;
+
+        if ($openId === '') {
+            return $this->json_result('', 403, '无权限操作');
+        }
+
+        if ($license === '' || $idCard === '') {
+            return $this->json_result('', 400, '请填写完整认证信息');
+        }
+
+        if ($id > 0) {
+            $factory = FactoryModel::where('Id', $id)
+                ->where('open_id', $openId)
+                ->find();
+        } else {
+            $factory = FactoryModel::where('open_id', $openId)->find();
+        }
+
+        if (!$factory) {
+            return $this->json_result('', 404, '加工厂不存在');
+        }
+
+        $result = FactoryModel::where('Id', $factory['Id'])->update([
+            'license'      => $license,
+            'id_card'      => $idCard,
+            'identification'     => 0,
+            'update_time'  => time(),
+        ]);
+
+        if ($result === false) {
+            return $this->json_result('', 500, '认证失败');
+        }
+
+        return $this->json_result(['Id' => $factory['Id']], 200, '认证成功');
     }
 }
