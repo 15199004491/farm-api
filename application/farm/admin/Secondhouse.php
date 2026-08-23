@@ -106,7 +106,7 @@ class Secondhouse extends Common
     {
         $data = $this->request->param();
 
-        $id = isset($data['Id']) ? intval($data['Id']) : 0;
+        $id = isset($data['id']) ? intval($data['id']) : 0;
 
         $openId = isset($data['open_id']) ? $data['open_id'] : '';
 
