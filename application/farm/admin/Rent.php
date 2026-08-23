@@ -3,6 +3,7 @@
 namespace app\farm\admin;
 
 use app\farm\model\Rent as RentModel;
+use app\farm\model\Person as PersonModel;
 use app\common\controller\Common;
 
 /**
@@ -27,7 +28,7 @@ class Rent extends Common
         $map = [];
 
         if ($keyword !== '') {
-            $map[] = ['name|explain', 'like', "%{$keyword}%"];
+            $map[] = ['title|name', 'like', "%{$keyword}%"];
         }
         if ($region !== '') {
             $map[] = ['area', 'like', "%{$region}%"];
@@ -130,11 +131,20 @@ class Rent extends Common
             $data['create_time'] = time();
             $data['open_id']     = $openId;
             $data['count']       = 0;
-            $data['top_start']   = 0;
-            $data['top_end']     = 0;
             $newId = RentModel::insertGetId($data);
             if ($newId) {
-                return $this->json_result(['Id' => $newId], 200, '发布成功');
+            if ($openId) {
+                $user = PersonModel::where('open_id', $openId)->find();
+                if ($user) {
+                    $houseIds = $user['rent_house_ids'] ? explode(',', $user['rent_house_ids']) : [];
+                    $houseIds[] = $newId;
+                    PersonModel::where('Id', $user['Id'])->update([
+                        'rent_house_ids' => implode(',', array_filter($houseIds)),
+                        'update_time'      => time(),
+                    ]);
+                }
+            }
+            return $this->json_result(['Id' => $newId], 200, '发布成功');
             }
             return $this->json_result('', 500, '发布失败');
         }
@@ -169,39 +179,5 @@ class Rent extends Common
             return $this->json_result('', 200, '删除成功');
         }
         return $this->json_result('', 500, '删除失败');
-    }
-
-    /**
-     * 置顶出租房
-     * 参数：Id, top_start, top_end
-     */
-    public function topRent()
-    {
-        $data   = $this->request->param();
-        $id     = isset($data['Id']) ? intval($data['Id']) : 0;
-        $openId = isset($data['open_id']) ? $data['open_id'] : '';
-
-        if ($id <= 0) {
-            return $this->json_result('', 400, '参数错误');
-        }
-
-        $rent = RentModel::where('Id', $id)->find();
-        if (!$rent) {
-            return $this->json_result('', 404, '房源不存在');
-        }
-
-        if ($openId && $rent['open_id'] !== $openId) {
-            return $this->json_result('', 403, '无权操作该房源');
-        }
-
-        $result = RentModel::where('Id', $id)->update([
-            'top_start' => isset($data['top_start']) ? $data['top_start'] : 0,
-            'top_end'   => isset($data['top_end'])   ? $data['top_end']   : 0,
-        ]);
-
-        if ($result !== false) {
-            return $this->json_result('', 200, '置顶成功');
-        }
-        return $this->json_result('', 500, '置顶失败');
     }
 }

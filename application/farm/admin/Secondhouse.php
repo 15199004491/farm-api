@@ -131,8 +131,6 @@ class Secondhouse extends Common
             $data['create_time'] = time();
             $data['open_id']     = $openId;
             $data['count']       = 0;
-            $data['top_start']   = 0;
-            $data['top_end']     = 0;
             $newId = SecondHouseModel::insertGetId($data);
             if ($newId) {
                 if ($openId) {

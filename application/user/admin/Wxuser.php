@@ -4,6 +4,19 @@ use think\Controller;
 use app\user\model\Wxuser  as WxuserModel;;
 
 class Wxuser extends Controller {
+
+    protected function initialize()
+    {
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin');
+        header('Access-Control-Max-Age: 3600');
+
+        if ($this->request->isOptions()) {
+            return response('', 200);
+        }
+    }
+
 	/**
      * 用户自动登录
      */

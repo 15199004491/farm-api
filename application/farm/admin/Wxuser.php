@@ -130,19 +130,12 @@ class Wxuser extends Controller
 
         $user = PersonModel::where('open_id', $openid)->find();
 
-        $mobile = isset($data['login_mobile']) ? $data['login_mobile'] : '';
-
         if ($user) {
             $userId = $user['Id'];
-            if ($mobile !== '') {
-                $data['login_mobile'] = $mobile;
-                PersonModel::where('Id', $userId)->update($data);
-            } else {
-                PersonModel::where('Id', $userId)->update(['update_time' => time()]);
-            }
+            PersonModel::where('Id', $userId)->update(['update_time' => time()]);
         } else {
             $data['create_time'] = time();
-            $data['login_mobile'] = $mobile;
+            $updateData['update_time'] = time();
             $userId = PersonModel::insertGetId($data);
         }
 
@@ -252,7 +245,6 @@ class Wxuser extends Controller
             return json(['code' => 401, 'msg' => '用户不存在或未登录', 'data' => null]);
         }
 
-        $result['house_vip'] = $result['house_vip_end'] > time();
         $result['session_token'] = $token;
 
         return json(['code' => 200, 'msg' => '操作成功', 'data' => $result]);
@@ -316,7 +308,28 @@ class Wxuser extends Controller
         $info = $this->http_request($url, ['content' => $msg]);
         $result = json_decode($info, true);
 
-        return json(['code' => 200, 'msg' => '检测完成', 'data' => $result]);
+        if (!is_array($result) || !isset($result['errcode'])) {
+            return json(['code' => 500, 'msg' => '检测接口调用失败', 'data' => null]);
+        }
+
+        if ($result['errcode'] !== 0) {
+            $errMsg = isset($result['errmsg']) ? $result['errmsg'] : '检测失败';
+            return json(['code' => 500, 'msg' => $errMsg, 'data' => $result]);
+        }
+
+        $label = isset($result['result']['label']) ? $result['result']['label'] : 0;
+        $level = isset($result['result']['level']) ? $result['result']['level'] : 'pass';
+        $prob  = isset($result['result']['prob']) ? $result['result']['prob'] : 0;
+
+        if ($label > 0 && $level === 'block') {
+            return json(['code' => 400, 'msg' => '内容存在违规风险', 'data' => $result]);
+        }
+
+        if ($label > 0 || $level === 'review') {
+            return json(['code' => 400, 'msg' => '内容需要人工审核', 'data' => $result]);
+        }
+
+        return json(['code' => 200, 'msg' => '检测通过', 'data' => $result]);
     }
 
     /**

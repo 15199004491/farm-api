@@ -16,6 +16,10 @@ class Factory extends Common
             if (!isset($item['category'])) {
                 $item['category'] = [];
             }
+
+            if (isset($item['location']) && is_string($item['location'])) {
+                $item['location'] = json_decode($item['location'], true) ?: [];
+            }
         }
         return $item;
     }
@@ -133,10 +137,6 @@ class Factory extends Common
         $data = $this->request->param();
         $id   = isset($data['Id']) ? intval($data['Id']) : 0;
 
-        if ($id <= 0) {
-            return $this->json_result('', 400, '参数错误');
-        }
-
         $result = FactoryModel::where('Id', $id)->find();
 
         if (!$result) {
@@ -175,6 +175,8 @@ class Factory extends Common
         $id     = isset($data['Id']) ? intval($data['Id']) : 0;
         $openId = isset($data['open_id']) ? $data['open_id'] : '';
 
+        $data = $this->normalizeCategory($data);
+
         $data['update_time'] = time();
 
         if ($id > 0) {
@@ -182,6 +184,27 @@ class Factory extends Common
         }
 
         return $this->createFactory($data, $openId);
+    }
+
+    private function normalizeCategory($data)
+    {
+        if (isset($data['category']) && is_array($data['category'])) {
+            $cleaned = [];
+            foreach ($data['category'] as $cat) {
+                if (empty($cat['name']) || empty($cat['price'])) {
+                    continue;
+                }
+                $cleaned[] = [
+                    'name'   => $cat['name'],
+                    'status' => $cat['status'],
+                    'price'  => $cat['price'],
+                    'unit'   => isset($cat['unit']) ? $cat['unit'] : '公斤',
+                    'remark' => isset($cat['remark']) ? $cat['remark'] : '',
+                ];
+            }
+            $data['category'] = json_encode($cleaned, JSON_UNESCAPED_UNICODE);
+        }
+        return $data;
     }
 
     private function updateFactory($data, $id, $openId)
@@ -238,12 +261,8 @@ class Factory extends Common
     public function deleteFactory()
     {
         $data   = $this->request->param();
-        $id     = isset($data['Id']) ? intval($data['Id']) : 0;
+        $id     = isset($data['id']) ? intval($data['id']) : 0;
         $openId = isset($data['open_id']) ? $data['open_id'] : '';
-
-        if ($id <= 0) {
-            return $this->json_result('', 400, '参数错误');
-        }
 
         $factory = FactoryModel::where('Id', $id)->find();
         if (!$factory) {
@@ -265,14 +284,10 @@ class Factory extends Common
     /**
      * 加工厂发布（通知+备注+品类 一次性保存）
      */
-    public function publishFactory()
+    public function publishFactoryInfo()
     {
         $data = $this->request->param();
-        $id   = isset($data['Id']) ? intval($data['Id']) : 0;
-
-        if ($id <= 0) {
-            return $this->json_result('', 400, '参数错误');
-        }
+        $id   = isset($data['id']) ? intval($data['id']) : 0;
 
         $factory = FactoryModel::where('Id', $id)->find();
         if (!$factory) {
@@ -284,30 +299,11 @@ class Factory extends Common
         if (isset($data['notice'])) {
             $updateData['notice'] = $data['notice'];
         }
-        if (isset($data['remark'])) {
-            $updateData['remark'] = $data['remark'];
-        }
 
-        if (isset($data['category']) && $data['category'] !== '') {
-            $category = is_string($data['category'])
-                ? json_decode($data['category'], true)
-                : $data['category'];
-
-            if (is_array($category)) {
-                $cleaned = [];
-                foreach ($category as $cat) {
-                    if (empty($cat['name']) || empty($cat['price'])) {
-                        continue;
-                    }
-                    $cleaned[] = [
-                        'name'   => $cat['name'],
-                        'price'  => $cat['price'],
-                        'unit'   => isset($cat['unit']) ? $cat['unit'] : '斤',
-                        'remark' => isset($cat['remark']) ? $cat['remark'] : '',
-                    ];
-                }
-                $updateData['category'] = json_encode($cleaned, JSON_UNESCAPED_UNICODE);
-            }
+        if (isset($data['categories']) && is_array($data['categories'])) {
+            $data['category'] = $data['categories'];
+            $data = $this->normalizeCategory($data);
+            $updateData['category'] = $data['category'];
         }
 
         FactoryModel::where('Id', $id)->update($updateData);
