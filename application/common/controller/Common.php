@@ -11,16 +11,72 @@ use think\Controller;
  */
 class Common extends Controller
 {
+    protected $appId;
+    protected $appSecret;
+
     /**
      * 初始
      * @author
      */
     protected function initialize()
     {
-        // $token = $this->getToken();
-        // // 如果存在token
-        // $result = Cache::get($token);
-        // if(!$result) exit($this->json_result('', 403, '请先登录!'));
+        parent::initialize();
+        $this->appId     = config('wechat.wx_appid') ?: 'wx5375bc6d5a7a6227';
+        $this->appSecret = config('wechat.wx_appsecret') ?: 'f946359b33b372d190c2d9be6e2cb213';
+    }
+
+    /**
+     * 通用 HTTP 请求（支持 GET/POST/JSON）
+     */
+    protected function http_request($url, $data = null, $useJson = true)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        if (!empty($data)) {
+            curl_setopt($ch, CURLOPT_POST, true);
+            if ($useJson && is_array($data)) {
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
+            } else {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            }
+        }
+
+        $output = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            return json_encode(['errcode' => -1, 'errmsg' => 'HTTP请求失败', 'http_code' => $httpCode]);
+        }
+
+        return $output;
+    }
+
+    /**
+     * 获取微信小程序 access_token（带缓存）
+     */
+    protected function getAccessToken()
+    {
+        $cacheKey = 'wx_access_token';
+        $token = Cache::get($cacheKey);
+        if ($token) {
+            return $token;
+        }
+
+        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->appId}&secret={$this->appSecret}";
+        $res = json_decode($this->http_request($url), true);
+
+        if (isset($res['access_token'])) {
+            Cache::set($cacheKey, $res['access_token'], 7000);
+            return $res['access_token'];
+        }
+
+        return '';
     }
 
     /**

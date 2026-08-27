@@ -45,16 +45,13 @@ class Factory extends Common
         $keyword   = isset($data['keyword'])   ? trim($data['keyword'])     : '';
         $verified  = isset($data['verified'])  ? $data['verified']          : '';
         $distance  = isset($data['distance'])  ? $data['distance']          : '';
-        $latitude  = isset($data['latitude'])  ? $data['latitude']          : '';
-        $longitude = isset($data['longitude']) ? $data['longitude']         : '';
+        $latitude  = isset($data['latitude'])  ? $data['latitude']          : (isset($data['lat']) ? $data['lat'] : '');
+        $longitude = isset($data['longitude']) ? $data['longitude']         : (isset($data['lng']) ? $data['lng'] : '');
 
         $map = [];
 
         if ($keyword !== '') {
-            $map[] = ['name|address|explain', 'like', "%{$keyword}%"];
-        }
-        if ($verified !== '') {
-            $map[] = ['verified', '=', intval($verified)];
+            $map[] = ['name|category', 'like', "%{$keyword}%"];
         }
 
         $query = FactoryModel::where($map);
@@ -64,7 +61,7 @@ class Factory extends Common
             $userLat = floatval($latitude);
             $userLng = floatval($longitude);
 
-            if ($radius > 0) {
+            if ($radius > 0 && !($userLat == 0 && $userLng == 0)) {
                 $haversine = "6371 * 2 * ATAN2(
                     SQRT(
                         POW(SIN(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.latitude')) - ?)) / 2), 2) +
@@ -172,7 +169,7 @@ class Factory extends Common
     public function addFactory()
     {
         $data   = $this->request->param();
-        $id     = isset($data['Id']) ? intval($data['Id']) : 0;
+        $id     = isset($data['id']) ? intval($data['id']) : 0;
         $openId = isset($data['open_id']) ? $data['open_id'] : '';
 
         $data = $this->normalizeCategory($data);
@@ -203,6 +200,9 @@ class Factory extends Common
                 ];
             }
             $data['category'] = json_encode($cleaned, JSON_UNESCAPED_UNICODE);
+        }
+        if (isset($data['location']) && is_array($data['location'])) {
+            $data['location'] = json_encode($data['location'], JSON_UNESCAPED_UNICODE);
         }
         return $data;
     }
@@ -261,7 +261,7 @@ class Factory extends Common
     public function deleteFactory()
     {
         $data   = $this->request->param();
-        $id     = isset($data['id']) ? intval($data['id']) : 0;
+        $id     = isset($data['Id']) ? intval($data['Id']) : 0;
         $openId = isset($data['open_id']) ? $data['open_id'] : '';
 
         $factory = FactoryModel::where('Id', $id)->find();
@@ -359,4 +359,56 @@ class Factory extends Common
 
         return $this->json_result(['Id' => $factory['Id']], 200, '认证成功');
     }
+
+    /**
+     * 生成加工厂小程序码
+     * 参数：Id(加工厂ID), page(小程序页面路径，可选，默认pages/factory/detail), width(图片宽度，可选，默认430)
+     * 返回：base64编码的小程序码图片
+     */
+    public function generateFactoryQrcode()
+    {
+        $data  = $this->request->param();
+        $id    = isset($data['Id']) ? intval($data['Id']) : 0;
+        $page  = isset($data['page']) ? trim($data['page']) : 'pages/factory/detail';
+        $width = isset($data['width']) ? intval($data['width']) : 430;
+
+        if ($id <= 0) {
+            return $this->json_result('', 400, '加工厂ID不能为空');
+        }
+
+        $factory = FactoryModel::where('Id', $id)->find();
+        if (!$factory) {
+            return $this->json_result('', 404, '加工厂不存在');
+        }
+
+        $token = $this->getAccessToken();
+        if (!$token) {
+            return $this->json_result('', 500, '获取access_token失败');
+        }
+
+        $url = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={$token}";
+
+        $postData = [
+            'scene'      => strval($id),
+            'page'       => $page,
+            'width'      => $width,
+            'auto_color' => false,
+            'line_color' => ['r' => 0, 'g' => 0, 'b' => 0],
+            'is_hyaline' => false,
+        ];
+
+        $response = $this->http_request($url, $postData, true);
+
+        $result = json_decode($response, true);
+        if (is_array($result) && isset($result['errcode']) && $result['errcode'] !== 0) {
+            $errmsg = isset($result['errmsg']) ? $result['errmsg'] : '生成小程序码失败';
+            return $this->json_result('', 500, $errmsg);
+        }
+
+        $base64 = 'data:image/jpeg;base64,' . base64_encode($response);
+
+        return $this->json_result(['qrcode' => $base64], 200, '生成成功');
+    }
+
+    
 }

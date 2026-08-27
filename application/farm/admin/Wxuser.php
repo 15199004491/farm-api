@@ -1,8 +1,8 @@
 <?php
 namespace app\farm\admin;
 
-use think\Controller;
 use think\facade\Cache;
+use app\common\controller\Common;
 use app\farm\model\Wxuser as WxuserModel;
 use app\farm\model\Suggest as SuggestModel;
 use app\farm\model\Person as PersonModel;
@@ -11,68 +11,11 @@ use app\farm\model\Person as PersonModel;
  * 微信用户相关接口
  * @package app\farm\admin
  */
-class Wxuser extends Controller
+class Wxuser extends Common
 {
-    private $appId;
-    private $appSecret;
-
-    public function __construct()
-    {
-        $this->appId     = config('wechat.wx_appid') ?: 'wx5375bc6d5a7a6227';
-        $this->appSecret = config('wechat.wx_appsecret') ?: 'f946359b33b372d190c2d9be6e2cb213';
-    }
-
     /* ========================================
      * 工具方法
      * ======================================== */
-
-    private function http_request($url, $data = null, $useJson = true)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        if (!empty($data)) {
-            curl_setopt($ch, CURLOPT_POST, true);
-            if ($useJson && is_array($data)) {
-                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
-            } else {
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            }
-        }
-
-        $output = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode !== 200) {
-            return json_encode(['errcode' => -1, 'errmsg' => 'HTTP请求失败', 'http_code' => $httpCode]);
-        }
-
-        return $output;
-    }
-
-    private function getAccessToken()
-    {
-        $cacheKey = 'wx_access_token';
-        $token = Cache::get($cacheKey);
-        if ($token) {
-            return $token;
-        }
-
-        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->appId}&secret={$this->appSecret}";
-        $res = json_decode($this->http_request($url), true);
-
-        if (isset($res['access_token'])) {
-            Cache::set($cacheKey, $res['access_token'], 7000);
-            return $res['access_token'];
-        }
-
-        return '';
-    }
 
     private function generateToken($openid)
     {
@@ -401,70 +344,6 @@ class Wxuser extends Controller
         return json(['code' => 500, 'msg' => $errmsg, 'data' => null]);
     }
 
-    /* ========================================
-     * 图片上传 / 删除
-     * ======================================== */
-
-    private $allowExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    private $uploadDir = 'farm';
-
-    public function updateImage()
-    {
-        if (empty($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-            return json(['code' => 400, 'msg' => '请上传图片', 'data' => null]);
-        }
-
-        $fileName = $_FILES['image']['name'];
-        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
-        if (!in_array($ext, $this->allowExt)) {
-            return json(['code' => 400, 'msg' => '不支持的图片格式', 'data' => null]);
-        }
-
-        $maxSize = 5 * 1024 * 1024;
-        if ($_FILES['image']['size'] > $maxSize) {
-            return json(['code' => 400, 'msg' => '图片不能超过5M', 'data' => null]);
-        }
-
-        $uploadDir = root_path() . 'public' . DIRECTORY_SEPARATOR . $this->uploadDir;
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        $saveName = uniqid() . '.' . $ext;
-        $savePath = $uploadDir . DIRECTORY_SEPARATOR . $saveName;
-
-        if (move_uploaded_file($_FILES['image']['tmp_name'], $savePath)) {
-            $imageUrl = $this->uploadDir . '/' . $saveName;
-            return json(['code' => 200, 'msg' => '上传成功', 'data' => $imageUrl]);
-        }
-
-        return json(['code' => 500, 'msg' => '上传失败', 'data' => null]);
-    }
-
-    public function removeImage()
-    {
-        $data = request()->param();
-        $path = isset($data['path']) ? $data['path'] : '';
-
-        if (empty($path)) {
-            return json(['code' => 400, 'msg' => '请传入文件路径', 'data' => null]);
-        }
-
-        $realPath = realpath(root_path() . 'public' . DIRECTORY_SEPARATOR . $path);
-        $uploadDir = realpath(root_path() . 'public' . DIRECTORY_SEPARATOR . $this->uploadDir);
-
-        if (!$realPath || strpos($realPath, $uploadDir) !== 0) {
-            return json(['code' => 403, 'msg' => '无权删除该文件', 'data' => null]);
-        }
-
-        if (file_exists($realPath)) {
-            @unlink($realPath);
-            return json(['code' => 200, 'msg' => '删除成功', 'data' => null]);
-        }
-
-        return json(['code' => 404, 'msg' => '文件不存在', 'data' => null]);
-    }
 
     /* ========================================
      * 投诉建议

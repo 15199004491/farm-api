@@ -113,8 +113,9 @@ class Config
             foreach ($module_config as $module_name => $config) {
                 $system_config[strtolower($module_name).'_config'] = json_decode($config, true);
             }
-            // 非开发模式，缓存系统配置
-            if ($system_config['develop_mode'] == 0) {
+            // 非开发模式，缓存系统配置（默认关闭开发模式，生产环境更安全）
+            $develop_mode = isset($system_config['develop_mode']) ? $system_config['develop_mode'] : 0;
+            if ($develop_mode == 0) {
                 cache('system_config', $system_config);
             }
         }

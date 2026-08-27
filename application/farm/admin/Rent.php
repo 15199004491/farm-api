@@ -110,6 +110,10 @@ class Rent extends Common
 
         $openId = isset($data['open_id']) ? $data['open_id'] : '';
 
+        if ($openId === '') {
+            return $this->json_result('', 403, '无权限操作，请先登录');
+        }
+
         $data['update_time'] = time();
 
         if ($id > 0) {

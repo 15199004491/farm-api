@@ -45,6 +45,30 @@ class Config extends Model
             }
         }
 
-        return $name != '' ? $result[$name] : $result;
+        // 系统必需配置默认值兜底，防止数据库缺失记录时报错
+        $defaultConfig = [
+            'develop_mode'   => 0,
+            'app_trace'      => 0,
+            'list_rows'      => 20,
+            'system_name'    => 'DolphinPHP',
+            'system_title'   => 'DolphinPHP管理系统',
+            'web_site_title' => 'DolphinPHP',
+            'index_template' => 'default',
+            'upload_image_ext' => 'gif,jpg,jpeg,bmp,png',
+            'upload_file_ext'  => 'doc,docx,xls,xlsx,ppt,pptx,pdf,wps,txt,zip,rar,gz,bz2',
+            'upload_image_size' => 2097152,
+            'upload_file_size'  => 2097152,
+            'data_backup_path'   => '../data/',
+            'data_backup_part_size' => 20971520,
+            'data_backup_compress' => 1,
+            'data_backup_compress_level' => 9,
+        ];
+        foreach ($defaultConfig as $key => $value) {
+            if (!isset($result[$key])) {
+                $result[$key] = $value;
+            }
+        }
+
+        return $name != '' ? (isset($result[$name]) ? $result[$name] : null) : $result;
     }
 }

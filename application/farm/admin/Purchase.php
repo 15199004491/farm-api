@@ -50,8 +50,8 @@ class Purchase extends Common
             $data['categories'] = json_encode($data['categories'], JSON_UNESCAPED_UNICODE);
         }
 
-        if(isset($data['Id'])) {
-            $param = PurchaseModel::where('Id', $data['Id'])->update($data);
+        if(isset($data['id'])) {
+            $param = PurchaseModel::where('Id', $data['id'])->update($data);
         } else {
             $data['create_time'] = time();
             $param = PurchaseModel::insertGetId($data);
