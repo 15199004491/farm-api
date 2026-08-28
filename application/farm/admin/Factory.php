@@ -7,19 +7,56 @@ use app\common\controller\Common;
 
 class Factory extends Common
 {
+    private function parseJsonField($data, $key)
+    {
+        if (!is_array($data) || !isset($data[$key])) {
+            return [];
+        }
+        if (is_array($data[$key])) {
+            return $data[$key];
+        }
+        if (is_string($data[$key])) {
+            return json_decode($data[$key], true) ?: [];
+        }
+        return [];
+    }
+
+    private function extractCoords($location)
+    {
+        $lat = 0;
+        $lng = 0;
+
+        if (is_array($location) && !empty($location)) {
+            $lat = isset($location['latitude'])  ? floatval($location['latitude'])  : (isset($location['lat']) ? floatval($location['lat']) : 0);
+            $lng = isset($location['longitude']) ? floatval($location['longitude']) : (isset($location['lng']) ? floatval($location['lng']) : 0);
+        }
+
+        if (($lat == 0 && $lng == 0) && !empty($location)) {
+            $raw = is_string($location) ? $location : json_encode($location, JSON_UNESCAPED_UNICODE);
+            if (preg_match('/(?:latitude|lat)\s*[:=]\s*(-?\d+(?:\.\d+)?)/i', $raw, $m)) {
+                $lat = floatval($m[1]);
+            }
+            if (preg_match('/(?:longitude|lng)\s*[:=]\s*(-?\d+(?:\.\d+)?)/i', $raw, $m)) {
+                $lng = floatval($m[1]);
+            }
+        }
+
+        return compact('lat', 'lng');
+    }
+
+    private function haversineDistance($lat1, $lng1, $lat2, $lng2)
+    {
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+        return 6371 * 2 * atan2(sqrt($a), sqrt(1 - $a));
+    }
+
     private function formatCategory($item)
     {
         if (is_array($item)) {
-            if (isset($item['category']) && is_string($item['category'])) {
-                $item['category'] = json_decode($item['category'], true) ?: [];
-            }
-            if (!isset($item['category'])) {
-                $item['category'] = [];
-            }
-
-            if (isset($item['location']) && is_string($item['location'])) {
-                $item['location'] = json_decode($item['location'], true) ?: [];
-            }
+            $item['category'] = $this->parseJsonField($item, 'category');
+            $item['location'] = $this->parseJsonField($item, 'location');
         }
         return $item;
     }
@@ -43,18 +80,22 @@ class Factory extends Common
         $page      = isset($data['page'])      ? intval($data['page'])      : 1;
         $limit     = isset($data['limit'])     ? intval($data['limit'])     : 10;
         $keyword   = isset($data['keyword'])   ? trim($data['keyword'])     : '';
-        $verified  = isset($data['verified'])  ? $data['verified']          : '';
         $distance  = isset($data['distance'])  ? $data['distance']          : '';
-        $latitude  = isset($data['latitude'])  ? $data['latitude']          : (isset($data['lat']) ? $data['lat'] : '');
-        $longitude = isset($data['longitude']) ? $data['longitude']         : (isset($data['lng']) ? $data['lng'] : '');
+        $latitude  = isset($data['latitude'])  ? $data['latitude']          : ($data['lat'] ?? '');
+        $longitude = isset($data['longitude']) ? $data['longitude']         : ($data['lng'] ?? '');
 
         $map = [];
-
         if ($keyword !== '') {
             $map[] = ['name|category', 'like', "%{$keyword}%"];
         }
 
-        $query = FactoryModel::where($map);
+        $allRows = FactoryModel::where($map)
+            ->order('update_time desc')
+            ->limit(10000)
+            ->select()
+            ->toArray();
+
+        $allRows = $this->formatCategoryList($allRows);
 
         if ($distance !== '' && $latitude !== '' && $longitude !== '') {
             $radius  = floatval($distance);
@@ -62,45 +103,27 @@ class Factory extends Common
             $userLng = floatval($longitude);
 
             if ($radius > 0 && !($userLat == 0 && $userLng == 0)) {
-                $haversine = "6371 * 2 * ATAN2(
-                    SQRT(
-                        POW(SIN(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.latitude')) - ?)) / 2), 2) +
-                        COS(RADIANS(?)) * COS(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.latitude')))) *
-                        POW(SIN(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.longitude')) - ?)) / 2), 2)
-                    ),
-                    SQRT(
-                        1 - (
-                            POW(SIN(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.latitude')) - ?)) / 2), 2) +
-                            COS(RADIANS(?)) * COS(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.latitude')))) *
-                            POW(SIN(RADIANS(JSON_UNQUOTE(JSON_EXTRACT(location, '$.longitude')) - ?)) / 2), 2)
-                        )
-                    )
-                ) <= ?";
-
-                $query->whereRaw($haversine, [
-                    $userLat, $userLat, $userLng,
-                    $userLat, $userLat, $userLng,
-                    $radius,
-                ]);
+                $filtered = [];
+                foreach ($allRows as $row) {
+                    $coords = $this->extractCoords($row['location'] ?? null);
+                    if ($coords['lat'] == 0 && $coords['lng'] == 0) {
+                        continue;
+                    }
+                    $dist = $this->haversineDistance($userLat, $userLng, $coords['lat'], $coords['lng']);
+                    if ($dist <= $radius) {
+                        $row['_distance'] = round($dist, 2);
+                        $filtered[] = $row;
+                    }
+                }
+                $allRows = $filtered;
             }
         }
 
-        $total = $query->count();
-        $list  = $query->order('update_time desc')
-            ->page($page, $limit)
-            ->select()
-            ->toArray();
+        $total = count($allRows);
+        $start = ($page - 1) * $limit;
+        $list  = array_slice($allRows, $start, $limit);
 
-        $list = $this->formatCategoryList($list);
-
-        $result = [
-            'total' => $total,
-            'page'  => $page,
-            'limit' => $limit,
-            'list'  => $list,
-        ];
-
-        return $this->json_result($result, 200, '操作成功');
+        return $this->json_result(compact('total', 'page', 'limit', 'list'), 200, '操作成功');
     }
 
     /**
@@ -220,6 +243,8 @@ class Factory extends Common
         }
 
         unset($data['open_id']);
+
+        $data['identification'] = null;
 
         $result = FactoryModel::where('Id', $id)->update($data);
 
