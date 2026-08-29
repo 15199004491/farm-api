@@ -385,9 +385,182 @@ class Factory extends Common
         return $this->json_result(['Id' => $factory['Id']], 200, '认证成功');
     }
 
+    private function generateCircleAvatar($text, $size = 200)
+    {
+        $img = imagecreatetruecolor($size, $size);
+        imagesavealpha($img, true);
+
+        $transparent = imagecolorallocatealpha($img, 0, 0, 0, 127);
+        imagefill($img, 0, 0, $transparent);
+
+        $green = imagecolorallocate($img, 34, 197, 94);
+        $white = imagecolorallocate($img, 255, 255, 255);
+
+        $centerX = $size / 2;
+        $centerY = $size / 2;
+        $radius  = $size / 2 - 2;
+
+        imagefilledellipse($img, $centerX, $centerY, $radius * 2, $radius * 2, $green);
+
+        $text = trim($text);
+        if ($text === '') {
+            return $img;
+        }
+
+        $mbLen = mb_strlen($text, 'UTF-8');
+        if ($mbLen <= 4) {
+            $fontSize = max(10, intval($size * 0.18));
+            $singleCharWidth = $fontSize * 0.9;
+            $totalWidth = $mbLen * $singleCharWidth;
+            $startX = $centerX - $totalWidth / 2 + $singleCharWidth / 2;
+            $y = $centerY + $fontSize / 3;
+            for ($i = 0; $i < $mbLen; $i++) {
+                $char = mb_substr($text, $i, 1, 'UTF-8');
+                $x = $startX + $i * $singleCharWidth;
+                imagettftext($img, $fontSize, 0, intval($x - $fontSize * 0.45), intval($y), $white, $this->getFontPath(), $char);
+            }
+        } else {
+            $centerAngleOffset = -90;
+            $mbLen = mb_strlen($text, 'UTF-8');
+
+            $totalArc = 300;
+            if ($mbLen <= 6) {
+                $totalArc = 240;
+            } elseif ($mbLen <= 10) {
+                $totalArc = 300;
+            } else {
+                $totalArc = 340;
+            }
+
+            $baseFontSize = $size * 0.11;
+            if ($mbLen > 15) {
+                $baseFontSize = $size * 0.09;
+            } elseif ($mbLen > 10) {
+                $baseFontSize = $size * 0.095;
+            } elseif ($mbLen > 6) {
+                $baseFontSize = $size * 0.10;
+            }
+            $fontSize = max(10, intval($baseFontSize));
+
+            $textRadius = $radius - 10 - $fontSize * 0.55;
+
+            $startAngle = $centerAngleOffset - $totalArc / 2;
+            $angleStep  = $totalArc / ($mbLen - 1);
+
+            for ($i = 0; $i < $mbLen; $i++) {
+                $angle = $startAngle + $i * $angleStep;
+                $rad = deg2rad($angle);
+                $char = mb_substr($text, $i, 1, 'UTF-8');
+
+                $x = $centerX + $textRadius * cos($rad);
+                $y = $centerY + $textRadius * sin($rad);
+
+                $charAngle = $angle + 90;
+
+                $charImg = imagecreatetruecolor($fontSize * 3, $fontSize * 3);
+                imagesavealpha($charImg, true);
+                $charTransparent = imagecolorallocatealpha($charImg, 0, 0, 0, 127);
+                imagefill($charImg, 0, 0, $charTransparent);
+
+                imagettftext($charImg, $fontSize, 0, intval($fontSize * 1.0), intval($fontSize * 2.0), $white, $this->getFontPath(), $char);
+                $rotated = imagerotate($charImg, -$charAngle, $charTransparent);
+                imagealphablending($rotated, true);
+                imagesavealpha($rotated, true);
+
+                $w = imagesx($rotated);
+                $h = imagesy($rotated);
+                imagecopy($img, $rotated, intval($x - $w / 2), intval($y - $h / 2), 0, 0, $w, $h);
+
+                imagedestroy($charImg);
+                imagedestroy($rotated);
+            }
+
+            $centerText = '';
+            if ($mbLen >= 10) {
+                $centerText = mb_substr($text, 0, 2, 'UTF-8');
+            } elseif ($mbLen >= 6) {
+                $centerText = mb_substr($text, 0, 1, 'UTF-8');
+            }
+
+            if ($centerText !== '') {
+                $centerFontSize = intval($size * 0.18);
+                $box = imagettfbbox($centerFontSize, 0, $this->getFontPath(), $centerText);
+                $textWidth = $box[2] - $box[0];
+                $textHeight = $box[1] - $box[7];
+                $cx = $centerX - $textWidth / 2;
+                $cy = $centerY + $textHeight / 2;
+                imagettftext($img, $centerFontSize, 0, intval($cx), intval($cy), $white, $this->getFontPath(), $centerText);
+            }
+        }
+
+        return $img;
+    }
+
+    private function getFontPath()
+    {
+        $candidates = [
+            'C:/Windows/Fonts/msyh.ttc',
+            dirname(__FILE__) . '/../../../public/static/fonts/msyh.ttc',
+            dirname(__FILE__) . '/../../../public/static/fonts/msyh.ttf',
+            dirname(__FILE__) . '/../../../public/static/fonts/simhei.ttf',
+            dirname(__FILE__) . '/../../../public/static/fonts/simsun.ttc',
+            'C:/Windows/Fonts/simhei.ttf',
+            'C:/Windows/Fonts/simsun.ttc',
+            '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+        ];
+
+        foreach ($candidates as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        return 'C:/Windows/Fonts/msyh.ttc';
+    }
+
+    private function mergeAvatarToQrcode($qrcodeData, $avatarImg)
+    {
+        $qrcodeImg = imagecreatefromstring($qrcodeData);
+        if (!$qrcodeImg) {
+            return $qrcodeData;
+        }
+
+        $qw = imagesx($qrcodeImg);
+        $qh = imagesy($qrcodeImg);
+
+        $baseDim = min($qw, $qh);
+
+        $overlayRatio = 0.43;
+
+        $overlaySize = intval($baseDim * $overlayRatio);
+
+        $resizedAvatar = imagecreatetruecolor($overlaySize, $overlaySize);
+        imagesavealpha($resizedAvatar, true);
+        $transparent = imagecolorallocatealpha($resizedAvatar, 0, 0, 0, 127);
+        imagefill($resizedAvatar, 0, 0, $transparent);
+        imagecopyresampled($resizedAvatar, $avatarImg, 0, 0, 0, 0, $overlaySize, $overlaySize, imagesx($avatarImg), imagesy($avatarImg));
+
+        $overlayX = intval(($qw - $overlaySize) / 2);
+        $overlayY = intval(($qh - $overlaySize) / 2);
+
+        imagecopy($qrcodeImg, $resizedAvatar, $overlayX, $overlayY, 0, 0, $overlaySize, $overlaySize);
+
+        imagedestroy($resizedAvatar);
+        imagedestroy($avatarImg);
+
+        ob_start();
+        imagejpeg($qrcodeImg, null, 90);
+        $output = ob_get_clean();
+        imagedestroy($qrcodeImg);
+
+        return $output;
+    }
+
     /**
      * 生成加工厂小程序码
      * 参数：Id(加工厂ID), page(小程序页面路径，可选，默认pages/factory/detail), width(图片宽度，可选，默认430)
+     *       name(环形文字，可选，默认取加工厂名称)
      * 返回：base64编码的小程序码图片
      */
     public function generateFactoryQrcode()
@@ -396,6 +569,7 @@ class Factory extends Common
         $id    = isset($data['Id']) ? intval($data['Id']) : 0;
         $page  = isset($data['page']) ? trim($data['page']) : 'pages/factory/detail';
         $width = isset($data['width']) ? intval($data['width']) : 430;
+        $name  = isset($data['name']) ? trim($data['name']) : '';
 
         if ($id <= 0) {
             return $this->json_result('', 400, '加工厂ID不能为空');
@@ -428,6 +602,18 @@ class Factory extends Common
         if (is_array($result) && isset($result['errcode']) && $result['errcode'] !== 0) {
             $errmsg = isset($result['errmsg']) ? $result['errmsg'] : '生成小程序码失败';
             return $this->json_result('', 500, $errmsg);
+        }
+
+        if ($name === '') {
+            $name = isset($factory['name']) ? trim($factory['name']) : '';
+        }
+
+        if ($name !== '' && function_exists('imagecreatetruecolor')) {
+            $avatarSize = 360;
+            $avatarImg = $this->generateCircleAvatar($name, $avatarSize);
+            if ($avatarImg) {
+                $response = $this->mergeAvatarToQrcode($response, $avatarImg);
+            }
         }
 
         $base64 = 'data:image/jpeg;base64,' . base64_encode($response);
