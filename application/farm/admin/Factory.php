@@ -7,6 +7,8 @@ use app\common\controller\Common;
 
 class Factory extends Common
 {
+    const INVALID_TOKEN_CODES = [40001, 40014, 42001];
+
     private function parseJsonField($data, $key)
     {
         if (!is_array($data) || !isset($data[$key])) {
@@ -211,13 +213,17 @@ class Factory extends Common
         if (isset($data['category']) && is_array($data['category'])) {
             $cleaned = [];
             foreach ($data['category'] as $cat) {
-                if (empty($cat['name']) || empty($cat['price'])) {
+                if (empty($cat['name'])) {
                     continue;
+                }
+                $price = isset($cat['price']) ? $cat['price'] : null;
+                if ($price !== null && $price !== '') {
+                    $price = floatval($price);
                 }
                 $cleaned[] = [
                     'name'   => $cat['name'],
-                    'status' => $cat['status'],
-                    'price'  => $cat['price'],
+                    'status' => isset($cat['status']) ? intval($cat['status']) : 1,
+                    'price'  => $price,
                     'unit'   => isset($cat['unit']) ? $cat['unit'] : '公斤',
                     'remark' => isset($cat['remark']) ? $cat['remark'] : '',
                 ];
@@ -387,136 +393,280 @@ class Factory extends Common
 
     private function generateCircleAvatar($text, $size = 200)
     {
-        $img = imagecreatetruecolor($size, $size);
-        imagesavealpha($img, true);
-
-        $transparent = imagecolorallocatealpha($img, 0, 0, 0, 127);
-        imagefill($img, 0, 0, $transparent);
-
-        $green = imagecolorallocate($img, 34, 197, 94);
-        $white = imagecolorallocate($img, 255, 255, 255);
-
-        $centerX = $size / 2;
-        $centerY = $size / 2;
-        $radius  = $size / 2 - 2;
-
-        imagefilledellipse($img, $centerX, $centerY, $radius * 2, $radius * 2, $green);
-
+        $img = $this->createAvatarBase($size);
         $text = trim($text);
         if ($text === '') {
             return $img;
         }
 
+        $fontInfo = $this->resolveFont();
         $mbLen = mb_strlen($text, 'UTF-8');
+
+        if (!$fontInfo['ok']) {
+            return $this->drawFallback($img, $text, $size, $fontInfo['path']);
+        }
+
         if ($mbLen <= 4) {
-            $fontSize = max(10, intval($size * 0.18));
-            $singleCharWidth = $fontSize * 0.9;
-            $totalWidth = $mbLen * $singleCharWidth;
-            $startX = $centerX - $totalWidth / 2 + $singleCharWidth / 2;
-            $y = $centerY + $fontSize / 3;
-            for ($i = 0; $i < $mbLen; $i++) {
-                $char = mb_substr($text, $i, 1, 'UTF-8');
-                $x = $startX + $i * $singleCharWidth;
-                imagettftext($img, $fontSize, 0, intval($x - $fontSize * 0.45), intval($y), $white, $this->getFontPath(), $char);
-            }
+            $this->drawHorizontalText($img, $text, $fontInfo['path'], $size);
         } else {
-            $centerAngleOffset = -90;
-            $mbLen = mb_strlen($text, 'UTF-8');
-
-            $totalArc = 300;
-            if ($mbLen <= 6) {
-                $totalArc = 240;
-            } elseif ($mbLen <= 10) {
-                $totalArc = 300;
-            } else {
-                $totalArc = 340;
-            }
-
-            $baseFontSize = $size * 0.11;
-            if ($mbLen > 15) {
-                $baseFontSize = $size * 0.09;
-            } elseif ($mbLen > 10) {
-                $baseFontSize = $size * 0.095;
-            } elseif ($mbLen > 6) {
-                $baseFontSize = $size * 0.10;
-            }
-            $fontSize = max(10, intval($baseFontSize));
-
-            $textRadius = $radius - 10 - $fontSize * 0.55;
-
-            $startAngle = $centerAngleOffset - $totalArc / 2;
-            $angleStep  = $totalArc / ($mbLen - 1);
-
-            for ($i = 0; $i < $mbLen; $i++) {
-                $angle = $startAngle + $i * $angleStep;
-                $rad = deg2rad($angle);
-                $char = mb_substr($text, $i, 1, 'UTF-8');
-
-                $x = $centerX + $textRadius * cos($rad);
-                $y = $centerY + $textRadius * sin($rad);
-
-                $charAngle = $angle + 90;
-
-                $charImg = imagecreatetruecolor($fontSize * 3, $fontSize * 3);
-                imagesavealpha($charImg, true);
-                $charTransparent = imagecolorallocatealpha($charImg, 0, 0, 0, 127);
-                imagefill($charImg, 0, 0, $charTransparent);
-
-                imagettftext($charImg, $fontSize, 0, intval($fontSize * 1.0), intval($fontSize * 2.0), $white, $this->getFontPath(), $char);
-                $rotated = imagerotate($charImg, -$charAngle, $charTransparent);
-                imagealphablending($rotated, true);
-                imagesavealpha($rotated, true);
-
-                $w = imagesx($rotated);
-                $h = imagesy($rotated);
-                imagecopy($img, $rotated, intval($x - $w / 2), intval($y - $h / 2), 0, 0, $w, $h);
-
-                imagedestroy($charImg);
-                imagedestroy($rotated);
-            }
-
-            $centerText = '';
-            if ($mbLen >= 10) {
-                $centerText = mb_substr($text, 0, 2, 'UTF-8');
-            } elseif ($mbLen >= 6) {
-                $centerText = mb_substr($text, 0, 1, 'UTF-8');
-            }
-
-            if ($centerText !== '') {
-                $centerFontSize = intval($size * 0.18);
-                $box = imagettfbbox($centerFontSize, 0, $this->getFontPath(), $centerText);
-                $textWidth = $box[2] - $box[0];
-                $textHeight = $box[1] - $box[7];
-                $cx = $centerX - $textWidth / 2;
-                $cy = $centerY + $textHeight / 2;
-                imagettftext($img, $centerFontSize, 0, intval($cx), intval($cy), $white, $this->getFontPath(), $centerText);
-            }
+            $this->drawRadialText($img, $text, $fontInfo['path'], $size);
         }
 
         return $img;
     }
 
+    private function createAvatarBase($size)
+    {
+        $img = imagecreatetruecolor($size, $size);
+        imagesavealpha($img, true);
+        $transparent = imagecolorallocatealpha($img, 0, 0, 0, 127);
+        imagefill($img, 0, 0, $transparent);
+        $green = imagecolorallocate($img, 34, 197, 94);
+        $radius = $size / 2 - 2;
+        imagefilledellipse($img, $size / 2, $size / 2, $radius * 2, $radius * 2, $green);
+        return $img;
+    }
+
+    private function resolveFont()
+    {
+        try {
+            $path = $this->getFontPath();
+            return ['path' => $path, 'ok' => $this->isFontSupportChinese($path)];
+        } catch (\Throwable $e) {
+            return ['path' => null, 'ok' => false];
+        }
+    }
+
+    private function drawFallback($img, $text, $size, $fontPath)
+    {
+        $white = imagecolorallocate($img, 255, 255, 255);
+        $cx = imagesx($img) / 2;
+        $cy = imagesy($img) / 2;
+
+        $char = $this->extractFallbackChar($text);
+        if ($char === '') {
+            return $img;
+        }
+
+        $fs = max(5, intval($size * 0.22));
+        if (preg_match('/[A-Z0-9]/', $char)) {
+            $fw = imagefontwidth(5);
+            $fh = imagefontheight(5);
+            imagestring($img, 5, intval($cx - $fw / 2), intval($cy - $fh / 2), $char, $white);
+        } elseif ($fontPath !== null) {
+            $box = @imagettfbbox($fs, 0, $fontPath, $char);
+            if (is_array($box)) {
+                $tw = intval($box[2]) - intval($box[0]);
+                $th = intval($box[1]) - intval($box[7]);
+                @imagettftext($img, $fs, 0, intval($cx - $tw / 2), intval($cy + $th / 2), $white, $fontPath, $char);
+            }
+        }
+        return $img;
+    }
+
+    private function extractFallbackChar($text)
+    {
+        $mbLen = mb_strlen($text, 'UTF-8');
+        for ($i = 0; $i < $mbLen; $i++) {
+            $ch = mb_substr($text, $i, 1, 'UTF-8');
+            if (preg_match('/[A-Za-z0-9]/', $ch)) {
+                return strtoupper($ch);
+            }
+        }
+        return $mbLen > 0 ? mb_substr($text, 0, 1, 'UTF-8') : '';
+    }
+
+    private function drawHorizontalText($img, $text, $fontPath, $size)
+    {
+        $white = imagecolorallocate($img, 255, 255, 255);
+        $cx = imagesx($img) / 2;
+        $cy = imagesy($img) / 2;
+        $mbLen = mb_strlen($text, 'UTF-8');
+        $fontSize = max(10, intval($size * 0.18));
+        $singleCharWidth = $fontSize * 0.9;
+        $totalWidth = $mbLen * $singleCharWidth;
+        $startX = $cx - $totalWidth / 2 + $singleCharWidth / 2;
+        $y = $cy + $fontSize / 3;
+
+        for ($i = 0; $i < $mbLen; $i++) {
+            $char = mb_substr($text, $i, 1, 'UTF-8');
+            $x = $startX + $i * $singleCharWidth;
+            @imagettftext($img, $fontSize, 0, intval($x - $fontSize * 0.45), intval($y), $white, $fontPath, $char);
+        }
+    }
+
+    private function drawRadialText($img, $text, $fontPath, $size)
+    {
+        $white = imagecolorallocate($img, 255, 255, 255);
+        $cx = imagesx($img) / 2;
+        $cy = imagesy($img) / 2;
+        $radius = $size / 2 - 2;
+        $mbLen = mb_strlen($text, 'UTF-8');
+
+        $totalArc = $this->getArcAngle($mbLen);
+        $fontSize = $this->getRadialFontSize($size, $mbLen);
+        $textRadius = $radius - 10 - $fontSize * 0.55;
+        $startAngle = -90 - $totalArc / 2;
+        $angleStep = $totalArc / ($mbLen - 1);
+
+        for ($i = 0; $i < $mbLen; $i++) {
+            $angle = $startAngle + $i * $angleStep;
+            $rad = deg2rad($angle);
+            $char = mb_substr($text, $i, 1, 'UTF-8');
+            $x = $cx + $textRadius * cos($rad);
+            $y = $cy + $textRadius * sin($rad);
+            $charAngle = $angle + 90;
+
+            $charImg = imagecreatetruecolor($fontSize * 3, $fontSize * 3);
+            imagesavealpha($charImg, true);
+            $charTransparent = imagecolorallocatealpha($charImg, 0, 0, 0, 127);
+            imagefill($charImg, 0, 0, $charTransparent);
+
+            @imagettftext($charImg, $fontSize, 0, intval($fontSize * 1.0), intval($fontSize * 2.0), $white, $fontPath, $char);
+            $rotated = imagerotate($charImg, -$charAngle, $charTransparent);
+            if ($rotated === false) {
+                imagedestroy($charImg);
+                continue;
+            }
+            imagealphablending($rotated, true);
+            imagesavealpha($rotated, true);
+
+            $w = imagesx($rotated);
+            $h = imagesy($rotated);
+            imagecopy($img, $rotated, intval($x - $w / 2), intval($y - $h / 2), 0, 0, $w, $h);
+            imagedestroy($charImg);
+            imagedestroy($rotated);
+        }
+
+        $centerText = $this->getCenterText($text, $mbLen);
+        if ($centerText !== '') {
+            $this->drawCenterText($img, $centerText, $fontPath, $size);
+        }
+    }
+
+    private function getArcAngle($mbLen)
+    {
+        if ($mbLen <= 6) return 240;
+        if ($mbLen <= 10) return 300;
+        return 340;
+    }
+
+    private function getRadialFontSize($size, $mbLen)
+    {
+        if ($mbLen > 15) return max(10, intval($size * 0.09));
+        if ($mbLen > 10) return max(10, intval($size * 0.095));
+        if ($mbLen > 6) return max(10, intval($size * 0.10));
+        return max(10, intval($size * 0.11));
+    }
+
+    private function getCenterText($text, $mbLen)
+    {
+        if ($mbLen >= 10) return mb_substr($text, 0, 2, 'UTF-8');
+        if ($mbLen >= 6) return mb_substr($text, 0, 1, 'UTF-8');
+        return '';
+    }
+
+    private function drawCenterText($img, $text, $fontPath, $size)
+    {
+        $white = imagecolorallocate($img, 255, 255, 255);
+        $cx = imagesx($img) / 2;
+        $cy = imagesy($img) / 2;
+        $centerFontSize = intval($size * 0.18);
+        $box = @imagettfbbox($centerFontSize, 0, $fontPath, $text);
+        if (!is_array($box)) return;
+
+        $textWidth = intval($box[2]) - intval($box[0]);
+        $textHeight = intval($box[1]) - intval($box[7]);
+        $drawX = $cx - $textWidth / 2;
+        $drawY = $cy + $textHeight / 2;
+        @imagettftext($img, $centerFontSize, 0, intval($drawX), intval($drawY), $white, $fontPath, $text);
+    }
+
+    private function isFontSupportChinese($fontPath)
+    {
+        if (!function_exists('imagettfbbox') || !file_exists($fontPath)) {
+            return false;
+        }
+        foreach (['中', '國', '阿', '斯'] as $ch) {
+            $bbox = @imagettfbbox(16, 0, $fontPath, $ch);
+            if ($bbox === false) {
+                return false;
+            }
+            if (intval($bbox[2]) - intval($bbox[0]) <= 0 || intval($bbox[1]) - intval($bbox[7]) <= 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private function getFontPath()
     {
+        static $foundFont = null;
+        if ($foundFont !== null) {
+            return $foundFont;
+        }
+
+        $fontsDir = dirname(__FILE__) . '/../../../public/static/fonts';
+        if (!is_dir($fontsDir)) {
+            @mkdir($fontsDir, 0755, true);
+        }
+
         $candidates = [
-            'C:/Windows/Fonts/msyh.ttc',
-            dirname(__FILE__) . '/../../../public/static/fonts/msyh.ttc',
-            dirname(__FILE__) . '/../../../public/static/fonts/msyh.ttf',
-            dirname(__FILE__) . '/../../../public/static/fonts/simhei.ttf',
-            dirname(__FILE__) . '/../../../public/static/fonts/simsun.ttc',
-            'C:/Windows/Fonts/simhei.ttf',
-            'C:/Windows/Fonts/simsun.ttc',
-            '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
-            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            $fontsDir . '/msyh.ttc',
+            $fontsDir . '/msyhbd.ttc',
+            $fontsDir . '/msyhl.ttc',
+            $fontsDir . '/simsun.ttc',
         ];
 
         foreach ($candidates as $path) {
-            if (file_exists($path)) {
-                return $path;
+            if (file_exists($path) && $this->isFontSupportChinese($path)) {
+                $foundFont = $path;
+                return $foundFont;
             }
         }
 
-        return 'C:/Windows/Fonts/msyh.ttc';
+        if (is_dir($fontsDir)) {
+            $globPatterns = [$fontsDir . '/*.ttf', $fontsDir . '/*.ttc'];
+            foreach ($globPatterns as $pattern) {
+                $matches = glob($pattern);
+                if (!empty($matches)) {
+                    foreach ($matches as $m) {
+                        if ($this->isFontSupportChinese($m)) {
+                            $foundFont = $m;
+                            return $foundFont;
+                        }
+                    }
+                }
+            }
+        }
+
+        $systemDirs = ['/usr/share/fonts', '/usr/local/share/fonts'];
+        $skipDirKeywords = ['dejavu', 'liberation', 'gnu-free', 'abattis', 'crosextra', 'caladea', 'carlito', 'stix', 'tlwg'];
+        foreach ($systemDirs as $dir) {
+            if (!is_dir($dir)) continue;
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST
+            );
+            foreach ($iterator as $item) {
+                if (!$item->isFile()) continue;
+                $ext = strtolower($item->getExtension());
+                if ($ext !== 'ttf' && $ext !== 'ttc' && $ext !== 'otf') continue;
+                $fullPath = $item->getPathname();
+                $lower = strtolower($fullPath);
+                $skip = false;
+                foreach ($skipDirKeywords as $kw) {
+                    if (strpos($lower, $kw) !== false) { $skip = true; break; }
+                }
+                if ($skip) continue;
+                if ($this->isFontSupportChinese($fullPath)) {
+                    $foundFont = $fullPath;
+                    return $foundFont;
+                }
+            }
+        }
+
+        throw new \RuntimeException('未找到中文字体，请将 msyh.ttc / simsun.ttc 上传到：' . $fontsDir);
     }
 
     private function mergeAvatarToQrcode($qrcodeData, $avatarImg)
@@ -557,12 +707,6 @@ class Factory extends Common
         return $output;
     }
 
-    /**
-     * 生成加工厂小程序码
-     * 参数：Id(加工厂ID), page(小程序页面路径，可选，默认pages/factory/detail), width(图片宽度，可选，默认430)
-     *       name(环形文字，可选，默认取加工厂名称)
-     * 返回：base64编码的小程序码图片
-     */
     public function generateFactoryQrcode()
     {
         $data  = $this->request->param();
@@ -580,23 +724,10 @@ class Factory extends Common
             return $this->json_result('', 404, '加工厂不存在');
         }
 
-        $token = $this->getAccessToken();
-        if (!$token) {
-            return $this->json_result('', 500, '获取access_token失败');
+        $response = $this->fetchQrcodeFromWechat($id, $page, $width);
+        if (!$response) {
+            return $this->json_result('', 500, '获取access_token失败，请检查小程序AppId/AppSecret配置或网络连接');
         }
-
-        $url = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={$token}";
-
-        $postData = [
-            'scene'      => strval($id),
-            'page'       => $page,
-            'width'      => $width,
-            'auto_color' => false,
-            'line_color' => ['r' => 0, 'g' => 0, 'b' => 0],
-            'is_hyaline' => false,
-        ];
-
-        $response = $this->http_request($url, $postData, true);
 
         $result = json_decode($response, true);
         if (is_array($result) && isset($result['errcode']) && $result['errcode'] !== 0) {
@@ -610,7 +741,7 @@ class Factory extends Common
 
         if ($name !== '' && function_exists('imagecreatetruecolor')) {
             $avatarSize = 360;
-            $avatarImg = $this->generateCircleAvatar($name, $avatarSize);
+            $avatarImg = @$this->generateCircleAvatar($name, $avatarSize);
             if ($avatarImg) {
                 $response = $this->mergeAvatarToQrcode($response, $avatarImg);
             }
@@ -619,6 +750,41 @@ class Factory extends Common
         $base64 = 'data:image/jpeg;base64,' . base64_encode($response);
 
         return $this->json_result(['qrcode' => $base64], 200, '生成成功');
+    }
+
+    private function fetchQrcodeFromWechat($id, $page, $width)
+    {
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            $forceRefresh = ($attempt > 0);
+            $token = $this->getAccessToken($forceRefresh);
+            if (!$token) {
+                continue;
+            }
+
+            $url = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={$token}";
+            $postData = [
+                'scene'      => strval($id),
+                'page'       => $page,
+                'width'      => $width,
+                'auto_color' => false,
+                'line_color' => ['r' => 0, 'g' => 0, 'b' => 0],
+                'is_hyaline' => false,
+            ];
+
+            $response = $this->http_request($url, $postData, true);
+            $result = json_decode($response, true);
+
+            if (is_array($result) && isset($result['errcode']) && $result['errcode'] !== 0) {
+                if (in_array(intval($result['errcode']), self::INVALID_TOKEN_CODES) && $attempt === 0) {
+                    continue;
+                }
+                return $response;
+            }
+
+            return $response;
+        }
+
+        return null;
     }
 
     

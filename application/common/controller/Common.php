@@ -58,24 +58,66 @@ class Common extends Controller
     }
 
     /**
-     * 获取微信小程序 access_token（带缓存）
+     * 获取微信小程序 access_token（带缓存 + 强制刷新 + 稳定版接口）
+     * @param bool $force 是否强制刷新（遇到 invalid token 时传 true）
      */
-    protected function getAccessToken()
+    protected function getAccessToken($force = false)
     {
-        $cacheKey = 'wx_access_token';
-        $token = Cache::get($cacheKey);
-        if ($token) {
-            return $token;
+        $cacheKey = 'wx_access_token_v2';
+
+        if (!$force) {
+            $token = Cache::get($cacheKey);
+            if ($token) {
+                return $token;
+            }
         }
 
-        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->appId}&secret={$this->appSecret}";
-        $res = json_decode($this->http_request($url), true);
+        if ($force) {
+            Cache::rm($cacheKey);
+        }
 
-        if (isset($res['access_token'])) {
-            Cache::set($cacheKey, $res['access_token'], 7000);
+        $lockKey = $cacheKey . '_lock';
+        if (!$force && Cache::get($lockKey)) {
+            usleep(200000);
+            $token = Cache::get($cacheKey);
+            if ($token) {
+                return $token;
+            }
+        }
+        Cache::set($lockKey, 1, 10);
+
+        $url = 'https://api.weixin.qq.com/cgi-bin/stable_token';
+        $postData = [
+            'grant_type'    => 'client_credential',
+            'appid'         => $this->appId,
+            'secret'        => $this->appSecret,
+            'force_refresh' => $force ? true : false,
+        ];
+
+        $raw = $this->http_request($url, $postData, true);
+        $res = json_decode($raw, true);
+
+        if (isset($res['access_token']) && !empty($res['access_token'])) {
+            $expiresIn = isset($res['expires_in']) ? intval($res['expires_in']) : 7200;
+            $cacheTtl  = max(300, $expiresIn - 300);
+            Cache::set($cacheKey, $res['access_token'], $cacheTtl);
+            Cache::rm($lockKey);
             return $res['access_token'];
         }
 
+        $fallbackUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$this->appId}&secret={$this->appSecret}";
+        $raw2 = $this->http_request($fallbackUrl);
+        $res2 = json_decode($raw2, true);
+
+        if (isset($res2['access_token']) && !empty($res2['access_token'])) {
+            $expiresIn = isset($res2['expires_in']) ? intval($res2['expires_in']) : 7200;
+            $cacheTtl  = max(300, $expiresIn - 300);
+            Cache::set($cacheKey, $res2['access_token'], $cacheTtl);
+            Cache::rm($lockKey);
+            return $res2['access_token'];
+        }
+
+        Cache::rm($lockKey);
         return '';
     }
 

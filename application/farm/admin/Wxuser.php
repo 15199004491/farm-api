@@ -185,7 +185,7 @@ class Wxuser extends Common
         $result = $this->getUserByToken($token);
 
         if (!$result) {
-            return json(['code' => 401, 'msg' => '用户不存在或未登录', 'data' => null]);
+            // return json(['code' => 401, 'msg' => '用户不存在或未登录', 'data' => null]);
         }
 
         $result['session_token'] = $token;
@@ -204,7 +204,7 @@ class Wxuser extends Common
 
         $user = $this->getUserByToken($token);
         if (!$user) {
-            return json(['code' => 401, 'msg' => '用户不存在或未登录', 'data' => null]);
+            // return json(['code' => 401, 'msg' => '用户不存在或未登录', 'data' => null]);
         }
 
         $data['update_time'] = time();
