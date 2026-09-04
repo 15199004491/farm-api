@@ -9,20 +9,6 @@ class Factory extends Common
 {
     const INVALID_TOKEN_CODES = [40001, 40014, 42001];
 
-    private function parseJsonField($data, $key)
-    {
-        if (!is_array($data) || !isset($data[$key])) {
-            return [];
-        }
-        if (is_array($data[$key])) {
-            return $data[$key];
-        }
-        if (is_string($data[$key])) {
-            return json_decode($data[$key], true) ?: [];
-        }
-        return [];
-    }
-
     private function extractCoords($location)
     {
         $lat = 0;

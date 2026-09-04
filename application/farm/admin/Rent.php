@@ -12,6 +12,23 @@ use app\common\controller\Common;
  */
 class Rent extends Common
 {
+    private function formatLocation($item)
+    {
+        if (is_array($item)) {
+            $item['location'] = $this->parseJsonField($item, 'location');
+        }
+        return $item;
+    }
+
+    private function formatLocationList($list)
+    {
+        foreach ($list as &$item) {
+            $item = $this->formatLocation($item);
+        }
+        unset($item);
+        return $list;
+    }
+
     /**
      * 获取出租房列表（支持分页、搜索、地区筛选）
      * 参数：page, limit, keyword, region
@@ -41,6 +58,8 @@ class Rent extends Common
             ->select()
             ->toArray();
 
+        $list = $this->formatLocationList($list);
+
         $result = [
             'total' => $total,
             'page'  => $page,
@@ -69,6 +88,8 @@ class Rent extends Common
             ->select()
             ->toArray();
 
+        $list = $this->formatLocationList($list);
+
         return $this->json_result($list, 200, '操作成功');
     }
 
@@ -95,6 +116,8 @@ class Rent extends Common
         RentModel::where('Id', $id)->update(['count' => $count]);
         $result['count'] = $count;
 
+        $result = $this->formatLocation($result->toArray());
+
         return $this->json_result($result, 200, '操作成功');
     }
 
@@ -112,6 +135,10 @@ class Rent extends Common
 
         if ($openId === '') {
             return $this->json_result('', 403, '无权限操作，请先登录');
+        }
+
+        if (isset($data['location']) && is_array($data['location'])) {
+            $data['location'] = json_encode($data['location'], JSON_UNESCAPED_UNICODE);
         }
 
         $data['update_time'] = time();

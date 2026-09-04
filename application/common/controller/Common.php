@@ -14,6 +14,20 @@ class Common extends Controller
     protected $appId;
     protected $appSecret;
 
+    protected function parseJsonField($data, $key)
+    {
+        if (!is_array($data) || !isset($data[$key])) {
+            return [];
+        }
+        if (is_array($data[$key])) {
+            return $data[$key];
+        }
+        if (is_string($data[$key])) {
+            return json_decode($data[$key], true) ?: [];
+        }
+        return [];
+    }
+
     /**
      * 初始
      * @author
